@@ -22,7 +22,8 @@
   window.Storage = {
     get(k, def) {
       const all = readAll();
-      return k in all ? all[k] : def;
+      const val = all[k];
+      return (val === undefined || val === null) ? def : val;
     },
     set(k, v) {
       const all = readAll();

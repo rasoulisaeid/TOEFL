@@ -302,7 +302,8 @@ function buildDictationCard(t) {
   const blankedWords = tokens.filter(tk => blankIndices.has(tk.idx)).map(tk => tk.clean);
 
   function loadAndRender() {
-    let state = Storage.get(storageKey, { answers: {}, completed: false });
+    let state = Storage.get(storageKey) || {};
+    if (!state.answers) state.answers = {};
     const cached = Storage.get(cacheKey, null);
 
     if (cached) {
@@ -399,7 +400,8 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
   tokens.forEach(tk => {
     if (blankIndices.has(tk.idx)) {
       const b = blankMap[tk.idx];
-      const answered = state.answers[tk.idx];
+      if (!b) return; // Should not happen
+      const answered = (state.answers || {})[tk.idx];
 
       // Wrapper: vertical stack (pair on top, blank below)
       const wrap = el("span", { class: "dict-inline-wrap" });
