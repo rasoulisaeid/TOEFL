@@ -1,7 +1,7 @@
 /* Gemini API integration for word analysis */
 window.Gemini = (function() {
   const API_KEY = "AIzaSyCihWzYeHx38dOd4YpPKLkW3_OtQCe60Og";
-  const MODEL = "gemini-1.5-pro"; // Interpreting 'Gemini Pro 3' as the latest 1.5 Pro
+  const MODEL = "gemini-3-flash-preview"; 
 
   return {
     async analyzeWord(word) {
