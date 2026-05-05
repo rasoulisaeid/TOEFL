@@ -10,7 +10,6 @@ window.Views.plan = function (mount) {
         el("span", null, "Plan"),
       ]),
       el("h1", null, "The 25-week roadmap"),
-      el("div", { class: "muted", style: "margin-top:6px" }, `${PLAN.weeklyHours} hours per week — 1h together + 2h solo, every day. Mid-Intermediate → solid B2 → TOEFL.`),
     ]),
   ]));
 
