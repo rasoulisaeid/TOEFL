@@ -51,13 +51,19 @@
     pushTimer = setTimeout(() => {
       const data = readLocal();
       ignoreNextRemoteUpdate = true;
-      dbRef().set({ payload: data, updatedAt: Date.now() })
-        .then(() => {
-          setSyncStatus("synced");
-        })
+
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Firebase timeout — check rules or connection")), 10000)
+      );
+
+      Promise.race([
+        dbRef().set({ payload: data, updatedAt: Date.now() }),
+        timeout,
+      ])
+        .then(() => setSyncStatus("synced"))
         .catch((err) => {
           setSyncStatus("error");
-          console.warn("Firebase push error:", err);
+          console.error("🔴 Firebase push failed:", err.message);
         });
     }, 1500);
   }
@@ -78,7 +84,7 @@
       setSyncStatus("synced");
     } catch (e) {
       setSyncStatus("error");
-      console.warn("Firebase pull error:", e);
+      console.error("🔴 Firebase pull failed:", e.code || e.message, "\nFix: update your Firebase Realtime Database rules to allow read/write.");
     }
   }
 
