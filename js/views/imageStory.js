@@ -124,7 +124,7 @@ window.Views.imageStory = function (mount, params) {
     card.appendChild(el("div", { class: "row" }, [
       el("div", { style: "font-weight:700;font-size:15px" }, "2) Paste the generated image"),
       el("span", { class: "spacer" }),
-      session.imageData ? el("button", { class: "btn sm danger", onclick: () => clearImage() }, "Remove") : null,
+      imageData ? el("button", { class: "btn sm danger", onclick: () => clearImage() }, "Remove") : null,
     ]));
     card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:4px" }, "Paste an image from clipboard (Ctrl+V), drag a file in, or click to browse."));
 
