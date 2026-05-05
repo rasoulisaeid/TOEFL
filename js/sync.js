@@ -55,6 +55,7 @@
       const data   = readLocal();
       const asJson = JSON.stringify(data);
       if (asJson === lastPushed) return;
+      lastPushed = asJson;
       setStatus("saving");
       try {
         const res = await fetch(apiUrl(), {
@@ -63,9 +64,9 @@
           body   : JSON.stringify({ payload: data, updatedAt: Date.now() }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        lastPushed = asJson;
         setStatus("synced");
       } catch (e) {
+        lastPushed = null; // reset on error so we can retry
         setStatus("error");
         console.error("🔴 Save failed:", e.message);
       }

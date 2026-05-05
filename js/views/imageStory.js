@@ -39,7 +39,6 @@ window.Views.imageStory = function (mount, params) {
       el("div", { class: "muted", style: "margin-top:6px" }, "Generate the 8-panel grid in Gemini Nano Banana, paste it below, then describe each scene one by one."),
     ]),
     el("div", { class: "actions" }, [
-      el("button", { class: "btn", onclick: () => exportStoryPDF() }, "📄 Export PDF"),
       el("button", { class: "btn", onclick: () => location.hash = `#/week/${w}/day/${d}` }, "Back"),
     ]),
   ]);

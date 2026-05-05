@@ -5,32 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pathway — 25 Weeks to TOEFL</title>
   <link rel="stylesheet" href="css/styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="app">
-    <header class="topbar">
+  <div id="app" class="app-shell">
+    <aside class="sidebar">
       <div class="brand" data-link="#/dashboard">
         <span class="brand-mark">P</span>
-        <span class="brand-name">Pathway</span>
-        <span class="brand-sub">25 weeks → TOEFL</span>
+        <div class="brand-text">
+          <span class="brand-name">Pathway</span>
+          <span class="brand-sub">25 weeks → TOEFL</span>
+        </div>
       </div>
       <nav class="topnav">
-        <a class="nav-link" data-link="#/dashboard">Dashboard</a>
-        <a class="nav-link" data-link="#/leitner">Leitner</a>
-        <a class="nav-link" data-link="#/plan">Plan</a>
+        <a class="nav-link" data-link="#/dashboard">
+          <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+        </a>
+        <a class="nav-link" data-link="#/leitner">
+          <span class="nav-icon">📚</span><span class="nav-label">Words</span>
+        </a>
+        <a class="nav-link" data-link="#/plan">
+          <span class="nav-icon">🗺️</span><span class="nav-label">Plan</span>
+        </a>
       </nav>
-      <div class="topbar-actions">
-        <span id="streakBadge" class="streak-badge" title="Daily streak">🔥 0</span>
-        <span id="syncStatus" class="sync-badge syncing" title="Loading…">⟳ Loading…</span>
+      <div class="sidebar-foot">
+        <div id="streakBadge" class="streak-badge" title="Daily streak">
+          <span class="streak-flame">🔥</span><span class="streak-num">0</span>
+        </div>
+        <div id="syncStatus" class="sync-badge syncing" title="Loading…">
+          <span class="sync-icon">⟳</span><span class="sync-label">Loading</span>
+        </div>
       </div>
-    </header>
+    </aside>
 
-    <main id="view"></main>
+    <div class="main-shell">
+      <main id="view"></main>
+      <footer class="appfoot">
+        <span>Built for daily practice — Speaking · Listening · Reading · Writing</span>
+      </footer>
+    </div>
 
-    <footer class="appfoot">
-      <span>Built for daily practice — Speaking · Listening · Reading · Writing</span>
-    </footer>
+    <!-- Mobile bottom nav -->
+    <nav class="bottom-nav">
+      <a class="nav-link" data-link="#/dashboard"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+      <a class="nav-link" data-link="#/leitner"><span class="nav-icon">📚</span><span class="nav-label">Words</span></a>
+      <a class="nav-link" data-link="#/plan"><span class="nav-icon">🗺️</span><span class="nav-label">Plan</span></a>
+    </nav>
   </div>
 
   <!-- Modal root -->
@@ -38,7 +60,6 @@
 
   <!-- Vendor: html2pdf bundle (jsPDF + html2canvas) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 
   <!-- Data -->
   <script src="js/data/plan.js"></script>

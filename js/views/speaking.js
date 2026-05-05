@@ -76,7 +76,6 @@ window.Views.speaking = function (mount, params) {
       ]),
       el("div", { class: "actions" }, [
         el("span", { class: `chip ${slot === "together" ? "" : "blue"}` }, slot === "together" ? "Together" : "Solo"),
-        el("button", { class: "btn", onclick: () => exportConvPDF(conv, w, d) }, "📄 Export PDF"),
         el("button", { class: "btn", onclick: () => location.hash = `#/week/${w}/day/${d}` }, "Back"),
       ]),
     ]);

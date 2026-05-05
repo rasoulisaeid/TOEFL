@@ -17,7 +17,11 @@
     });
     const streakEl = document.getElementById("streakBadge");
     const s = State.getStreak().count;
-    if (streakEl) streakEl.textContent = "🔥 " + s;
+    if (streakEl) {
+      const numEl = streakEl.querySelector(".streak-num");
+      if (numEl) numEl.textContent = s;
+      else streakEl.innerHTML = `<span class="streak-flame">🔥</span><span class="streak-num">${s}</span>`;
+    }
   }
 
   function route() {

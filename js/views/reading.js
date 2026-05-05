@@ -68,7 +68,6 @@ function buildReading(w, d, rd) {
         el("span", null, catEmoji(rd.category)), " ", catLabel(rd.category),
       ]),
       el("span", { class: "spacer" }),
-      el("button", { class: "btn sm", onclick: () => exportReadingPDF(rd, w, d) }, "📄 Export PDF"),
     ]),
     el("h2", { style: "margin:10px 0 4px;font-size:24px" }, rd.title),
     rd.intro ? el("div", { class: "muted", style: "margin-bottom:10px" }, rd.intro) : null,

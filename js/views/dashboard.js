@@ -16,24 +16,32 @@ window.Views.dashboard = function (mount) {
   const avgProgress = totalProgress / PLAN.weeks.length;
   const cardsLearned = State.getCards().length;
 
-  const head = el("div", { class: "page-head" }, [
-    el("div", null, [
-      el("div", { class: "breadcrumb muted" }, "Welcome back"),
-      el("h1", null, "Your 25-week pathway"),
-      el("div", { class: "muted", style: "margin-top:6px" }, "Mid-Intermediate → solid B2 → TOEFL-ready. One step at a time."),
-    ]),
-    el("div", { class: "actions" }, [
-      el("button", { class: "btn", onclick: () => location.hash = "#/leitner" }, "Open Leitner"),
-      el("button", { class: "btn primary", onclick: () => goCurrentWeek() }, "Start today →"),
+  const hero = el("div", { class: "hero-card" }, [
+    el("div", { style: "position:relative;z-index:1" }, [
+      el("div", { style: "font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;opacity:.85" }, "Welcome back ✨"),
+      el("h1", { style: "margin:8px 0 6px" }, "Let's keep going"),
+      el("div", { class: "sub" }, `${weeksDone}/25 weeks · ${pct(avgProgress)}% overall · ${cardsLearned} words in Leitner`),
+      el("div", { style: "margin-top:18px;display:flex;gap:10px;flex-wrap:wrap" }, [
+        el("button", {
+          class: "btn",
+          style: "background:white;color:var(--primary-dark);border-color:rgba(0,0,0,.04);border-bottom-color:rgba(0,0,0,.08)",
+          onclick: () => goCurrentWeek(),
+        }, "▶  Start today"),
+        el("button", {
+          class: "btn",
+          style: "background:rgba(255,255,255,.16);color:white;border-color:rgba(255,255,255,.24);border-bottom-color:rgba(0,0,0,.18)",
+          onclick: () => location.hash = "#/leitner",
+        }, "📚  Review words"),
+      ]),
     ]),
   ]);
-  mount.appendChild(head);
+  mount.appendChild(hero);
 
   const stats = el("div", { class: "stat-row" }, [
-    statCard("Streak", `${streak} 🔥`, "Daily ping"),
-    statCard("Weeks complete", `${weeksDone}/25`, "B1 → B2 → TOEFL", "warm"),
-    statCard("Avg. progress", `${pct(avgProgress)}%`, "Across all weeks", "cool"),
-    statCard("Words in Leitner", `${cardsLearned}`, "Active vocabulary"),
+    statCard("Streak", `🔥 ${streak}`, "Days in a row", "warm"),
+    statCard("Weeks complete", `${weeksDone}/25`, "B1 → B2 → TOEFL"),
+    statCard("Overall", `${pct(avgProgress)}%`, "Across all weeks", "cool"),
+    statCard("Vocabulary", `${cardsLearned}`, "Active in Leitner"),
   ]);
   mount.appendChild(stats);
 
