@@ -1254,20 +1254,23 @@ main {
 .mcq-progress {
   display: flex; align-items: center; gap: 12px;
 }
-.mcq-progress .dots { display: flex; gap: 6px; }
-.mcq-progress .dots span {
+.mcq-progress .dots { display: flex; gap: 8px; }
+.mcq-progress .dot-btn {
   width: 12px; height: 12px; border-radius: 50%;
-  background: var(--border);
-  transition: all .25s;
+  background: var(--border-2);
+  border: none; padding: 0;
+  transition: all .2s;
+  cursor: pointer;
 }
-.mcq-progress .dots span.cur {
+.mcq-progress .dot-btn.cur {
   background: var(--primary);
-  transform: scale(1.4);
-  box-shadow: 0 0 0 4px rgba(139,92,246,.18);
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--primary-soft);
 }
-.mcq-progress .dots span.done {
+.mcq-progress .dot-btn.done {
   background: var(--green);
-  box-shadow: 0 0 0 2px var(--green-soft);
+}
+.mcq-progress .dot-btn:hover:not(.cur) {
+  background: var(--primary-2);
 }
 
 .cheer {

@@ -36,9 +36,14 @@
     function renderProgress() {
       const dots = UI.el("div", { class: "dots" });
       for (let i = 0; i < total; i++) {
-        const span = UI.el("span", null);
-        if (state.answers[i] != null) span.classList.add("done");
-        else if (i === state.current) span.classList.add("cur");
+        const span = UI.el("button", {
+          class: "dot-btn" + (state.answers[i] != null ? " done" : "") + (i === state.current ? " cur" : ""),
+          onclick: () => {
+            state.current = i;
+            save();
+            renderQ();
+          }
+        });
         dots.appendChild(span);
       }
       return UI.el("div", { class: "mcq-progress" }, [
