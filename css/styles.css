@@ -1509,81 +1509,89 @@ main {
 
 .dictation-passage {
   font-size: 17px;
-  line-height: 3.8; /* Extra line height for the vertical pairs */
+  line-height: 4.2; /* Ample space for floating pairs */
   color: var(--text);
   font-weight: 500;
+  text-align: justify;
 }
 
-/* Vertical stack for the blank: buttons on top, line on bottom */
+/* The vertical stack: Pair tags on top, Underline on bottom */
 .dict-inline-wrap {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  vertical-align: bottom;
-  margin: 0 4px;
+  vertical-align: middle;
+  margin: 0 6px;
   position: relative;
   line-height: 1;
+  transform: translateY(12px); /* Nudge down so underline matches text baseline */
 }
 
 .dict-pair-row {
   display: flex;
-  gap: 3px;
-  margin-bottom: 2px;
+  gap: 2px;
+  padding: 2px;
+  background: var(--card-2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
   animation: slide-up .3s ease-out;
 }
 
 .dict-pick {
-  padding: 2px 6px;
-  border: 1.5px solid var(--border);
-  border-bottom-width: 2.5px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
   background: white;
-  border-radius: 6px;
+  border-radius: 5px;
   font-weight: 800;
   font-size: 11px;
   cursor: pointer;
-  transition: all .1s;
+  transition: all .12s;
   color: var(--text);
   white-space: nowrap;
 }
 .dict-pick:hover {
   border-color: var(--primary);
+  color: var(--primary-dark);
   background: var(--primary-soft);
-  transform: translateY(-1px);
 }
 .dict-pick:active {
-  transform: translateY(1px);
-  border-bottom-width: 1.5px;
+  background: var(--border);
 }
 
 .dict-underline {
   width: 100%;
-  min-width: 50px;
-  height: 2.5px;
+  min-width: 65px;
+  height: 3px;
   background: var(--border-2);
   border-radius: 999px;
-  margin-top: 1px;
 }
 
-/* Filled state */
+/* When answered, the wrap becomes a single line of text */
 .dict-inline-wrap.done {
+  flex-direction: row;
+  transform: none;
   vertical-align: baseline;
+  margin: 0 2px;
 }
 .dict-filled {
   font-weight: 800;
-  font-size: 17px;
-  padding: 0 4px;
-  border-radius: 6px;
+  font-size: 18px;
+  padding: 2px 8px;
+  border-radius: 8px;
   animation: pop-in .3s cubic-bezier(.4, 1.6, .6, 1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 .dict-filled.correct {
   color: var(--green-dark);
   background: var(--green-soft);
-  border-bottom: 2px solid var(--green);
+  border: 1.5px solid rgba(88,204,2,.3);
 }
 .dict-filled.revealed {
   color: var(--orange-dark);
   background: var(--orange-soft);
-  border-bottom: 2px solid var(--orange);
+  border: 1.5px solid rgba(255,150,0,.3);
 }
 
 /* Score bar */
@@ -1604,7 +1612,7 @@ main {
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
