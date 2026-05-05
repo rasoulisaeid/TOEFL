@@ -54,6 +54,8 @@
               Views.reading(view, { w, d });
             } else if (parts[4] === "listening") {
               Views.listening(view, { w, d });
+            } else if (parts[4] === "writing") {
+              Views.writing(view, { w, d });
             } else {
               Views.day(view, { w, d });
             }

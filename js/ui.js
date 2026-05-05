@@ -147,26 +147,38 @@
       item.appendChild(faRow);
     }
 
+    // Build the action button once. On click we mutate it in place — no DOM rebuild,
+    // no waiting for sync echo, truly instant.
+    const btn = el("button", {
+      class: "btn sm" + (inLeitner ? " ghost" : " primary"),
+      text: inLeitner ? "✓ in Leitner" : "+ Leitner",
+    });
+    btn.disabled = inLeitner;
+    btn.addEventListener("click", () => {
+      if (btn.disabled || btn.dataset.added === "1") return;
+      const persian = window.tFa ? tFa(v.w) : null;
+      State.addCard({
+        word: v.w,
+        meaning: v.m + (persian ? `\n${persian}` : ""),
+        example: v.ex || "",
+        pos: v.p || "",
+        sourceWeek: w, sourceDay: d,
+      });
+      // Update button in place — instant feedback regardless of sync.
+      btn.dataset.added = "1";
+      btn.disabled = true;
+      btn.classList.remove("primary");
+      btn.classList.add("ghost");
+      btn.textContent = "✓ in Leitner";
+      btn.style.transition = "transform .15s";
+      btn.style.transform = "scale(1.08)";
+      setTimeout(() => { btn.style.transform = ""; }, 160);
+      UI.toast(`"${v.w}" added`);
+    });
+
     item.appendChild(el("div", { class: "row", style: "margin-top:6px" }, [
       el("span", { class: "spacer" }),
-      el("button", {
-        class: "btn sm" + (inLeitner ? " ghost" : " primary"),
-        text: inLeitner ? "✓ in Leitner" : "+ Leitner",
-        disabled: inLeitner ? true : false,
-        onclick: () => {
-          if (inLeitner) return;
-          const persian = window.tFa ? tFa(v.w) : null;
-          State.addCard({
-            word: v.w,
-            meaning: v.m + (persian ? `\n${persian}` : ""),
-            example: v.ex || "",
-            pos: v.p || "",
-            sourceWeek: w, sourceDay: d,
-          });
-          UI.toast(`"${v.w}" added`);
-          item.replaceWith(buildVocabItem(v, w, d));
-        },
-      }),
+      btn,
     ]));
 
     return item;

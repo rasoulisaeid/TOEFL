@@ -9,6 +9,7 @@ window.Views.day = function (mount, params) {
   const dayContent = content && content.days[d - 1];
   const readingDay = w === 1 ? WEEK1_READING.days[d - 1] : null;
   const listeningDay = w === 1 ? WEEK1_LISTENING.days[d - 1] : null;
+  const writingDay = w === 1 ? WEEK1_WRITING.days[d - 1] : null;
   if (!meta || !dayContent) { mount.innerHTML = "<div class='empty'>Day not found.</div>"; return; }
 
   UI.clear(mount);
@@ -52,11 +53,11 @@ window.Views.day = function (mount, params) {
 
   function render() {
     UI.clear(body);
-    body.appendChild(slotContent(w, d, dayContent, readingDay, listeningDay, activeSlot));
+    body.appendChild(slotContent(w, d, dayContent, readingDay, listeningDay, writingDay, activeSlot));
   }
 };
 
-function slotContent(w, d, dayContent, readingDay, listeningDay, slot) {
+function slotContent(w, d, dayContent, readingDay, listeningDay, writingDay, slot) {
   const { el } = UI;
   const wrap = el("div", null);
 
@@ -135,7 +136,26 @@ function slotContent(w, d, dayContent, readingDay, listeningDay, slot) {
     ]));
 
     wrap.appendChild(el("div", { class: "section-title" }, "Writing · 20 min"));
-    wrap.appendChild(placeholderSkill("wr", "Writing", "✍️", "20 min", "Daily writing prompt — coming soon."));
+    wrap.appendChild(el("div", { class: "skill-block wr" }, [
+      el("div", { class: "head" }, [
+        el("div", { class: "icon" }, "✍️"),
+        el("div", null, [
+          el("h3", null, "Writing"),
+          el("div", { class: "meta" }, "Fill the blanks · Rebuild phrases · Guided writing"),
+        ]),
+        el("span", { class: "spacer" }),
+        writingDay ? el("button", {
+          class: "btn primary sm",
+          onclick: () => location.hash = `#/week/${w}/day/${d}/writing`,
+        }, "Open all →") : el("span", { class: "chip muted" }, "soon"),
+      ]),
+      writingDay ? el("div", { class: "tasks" }, writingDay.tasks.map((t, i) =>
+        taskRow(w, d, t.id, t.title, writingTypeLabel(t), () => {
+          sessionStorage.setItem(`wr:active:${w}:${d}`, i);
+          location.hash = `#/week/${w}/day/${d}/writing`;
+        })
+      )) : null,
+    ]));
 
     wrap.appendChild(el("div", { class: "section-title" }, "Vocabulary review · 10 min"));
     const card = el("div", { class: "skill-block" }, [
@@ -190,6 +210,12 @@ function catLabelHelper(c) {
     : c === "scientific" ? "🔬 Science"
     : c === "fashion"    ? "🎨 Art & Style"
     : "";
+}
+
+function writingTypeLabel(t) {
+  const ic = t.type === "cloze" ? "🧩" : t.type === "scramble" ? "🔀" : "✨";
+  const lbl = t.type === "cloze" ? "Fill the blanks" : t.type === "scramble" ? "Rebuild phrases" : "Guided writing";
+  return `${ic} ${lbl}`;
 }
 
 function buildRatingsCard(w, d) {

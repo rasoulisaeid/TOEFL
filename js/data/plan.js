@@ -3,7 +3,7 @@ window.PLAN = {
   goal: "Mid-Intermediate → solid B2 → TOEFL-ready",
   weeklyHours: 21, // 1h together + 2h solo, 7 days
   weeks: [
-    { i: 1,  theme: "Daily Life & Survival English",        sub: "Cafés, errands, small talk", phase: "Foundations B1",  contentReady: true,  tasksPerDay: 10 },
+    { i: 1,  theme: "Daily Life & Survival English",        sub: "Cafés, errands, small talk", phase: "Foundations B1",  contentReady: true,  tasksPerDay: 13 },
     { i: 2,  theme: "People, Habits & Personality",         sub: "Describing people you know",  phase: "Foundations B1",  contentReady: false, tasksPerDay: 8 },
     { i: 3,  theme: "Work, School & Routine",               sub: "Talking about your day",      phase: "Foundations B1",  contentReady: false, tasksPerDay: 8 },
     { i: 4,  theme: "Travel, Directions & Transport",       sub: "Getting around new places",   phase: "Foundations B1",  contentReady: false, tasksPerDay: 8 },

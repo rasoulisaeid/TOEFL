@@ -1,46 +1,97 @@
-/* Gemini API integration for word analysis */
+/* Gemini API integration for word analysis + writing refinement */
 window.Gemini = (function() {
   const API_KEY = "AIzaSyCihWzYeHx38dOd4YpPKLkW3_OtQCe60Og";
-  const MODEL = "gemini-3-flash-preview"; 
+  const MODEL = "gemini-3-flash-preview";
+  const FALLBACK_MODELS = ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"];
 
-  return {
-    async analyzeWord(word) {
-      const prompt = `Return a JSON object for the English word "${word}" with these fields: "word", "meaning" (concise Persian definition), "example" (a simple English sentence using the word), and "pos" (part of speech). Provide ONLY the raw JSON string.`;
-      
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
-      
+  function getKey() {
+    return (window.Storage && Storage.get) ? Storage.get("gemini:key", API_KEY) : API_KEY;
+  }
+  function url(model) {
+    return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${getKey()}`;
+  }
+
+  async function callRaw(prompt, opts = {}) {
+    const tryModels = [opts.model || MODEL].concat(FALLBACK_MODELS).filter((m, i, a) => a.indexOf(m) === i);
+    let lastErr;
+    for (const m of tryModels) {
       try {
-        const res = await fetch(url, {
+        const res = await fetch(url(m), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
-              temperature: 0.1, // Low temp for more consistent JSON
-            }
-          })
+              temperature: opts.temperature != null ? opts.temperature : 0.3,
+              responseMimeType: opts.json ? "application/json" : undefined,
+            },
+          }),
         });
-        
         if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          console.error("Gemini API Error:", errData);
-          throw new Error(`Gemini API returned ${res.status}`);
+          if (res.status === 404) { lastErr = new Error("model_not_found:" + m); continue; }
+          const t = await res.text().catch(() => "");
+          throw new Error(`Gemini ${res.status}: ${t.slice(0,200)}`);
         }
-        
         const data = await res.json();
-        const text = data.candidates[0].content.parts[0].text;
-        
-        // Robust JSON extraction (in case Gemini still wraps it in markdown)
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error("No JSON found in response");
-        
-        const cleanJson = jsonMatch[0];
-        return JSON.parse(cleanJson);
+        const text = (((data.candidates || [])[0] || {}).content || {}).parts || [];
+        return text.map((p) => p.text || "").join("");
+      } catch (e) { lastErr = e; }
+    }
+    throw lastErr || new Error("Gemini call failed");
+  }
+
+  async function callJSON(prompt, opts = {}) {
+    const raw = await callRaw(prompt, Object.assign({ json: true }, opts));
+    try { return JSON.parse(raw); }
+    catch (e) {
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (m) { try { return JSON.parse(m[0]); } catch (e2) {} }
+      return { _raw: raw };
+    }
+  }
+
+  return {
+    async analyzeWord(word) {
+      const prompt = `Return a JSON object for the English word "${word}" with these fields: "word", "meaning" (concise Persian definition), "example" (a simple English sentence using the word), and "pos" (part of speech). Provide ONLY the raw JSON string.`;
+      try {
+        return await callJSON(prompt, { temperature: 0.1 });
       } catch (e) {
         console.error("🔴 Gemini Analysis failed:", e.message);
         return null;
       }
-    }
+    },
+
+    /**
+     * Refine a single sentence/short paragraph for a B1 learner.
+     * Returns { corrected, feedback, changes:[] } — gentle, non-rewriting.
+     */
+    async refineSentence({ studentText, stepPrompt, hints, level }) {
+      const lvl = level || "B1";
+      const hintLine = hints && hints.length ? `Optional hint words she could use naturally: ${hints.join(", ")}.` : "";
+      const prompt = [
+        `You are a kind, encouraging English writing coach for a ${lvl} learner.`,
+        `She is writing a small paragraph step by step. Right now she is answering this sub-prompt:`,
+        `> ${stepPrompt}`,
+        hintLine,
+        ``,
+        `Her sentence(s):`,
+        `"${studentText}"`,
+        ``,
+        `Your job:`,
+        `- Make ONLY light corrections (grammar, articles, prepositions, awkward word order, missing punctuation).`,
+        `- KEEP her ideas, voice, and most of her wording. Do not rewrite or expand. Do not add new content.`,
+        `- If her sentence is already good, return it unchanged with empty "changes".`,
+        `- Be warm, specific, and short.`,
+        ``,
+        `Return JSON exactly in this shape:`,
+        `{`,
+        `  "corrected": "her sentence with light fixes",`,
+        `  "feedback": "1 short, warm, specific tip (under 22 words)",`,
+        `  "changes": ["short note for each fix you made, max 3 items"]`,
+        `}`,
+      ].filter(Boolean).join("\n");
+      return callJSON(prompt, { temperature: 0.25 });
+    },
   };
 })();
 
