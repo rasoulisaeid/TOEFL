@@ -1,11 +1,13 @@
 /* Gemini API integration for word analysis + writing refinement */
 window.Gemini = (function() {
   const MODEL = "gemini-3-flash-preview";
-  const FALLBACK_MODELS = ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"];
+  const FALLBACK_MODELS = ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
 
   function getKey() {
     const configKey = (window.CONFIG && window.CONFIG.GEMINI_API_KEY) || "";
-    return (window.Storage && Storage.get) ? Storage.get("gemini:key", configKey) : configKey;
+    const stored = (window.Storage && Storage.get) ? Storage.get("gemini:key") : null;
+    // Only use stored key if it's a non-empty string
+    return (stored && typeof stored === "string" && stored.trim() !== "") ? stored : configKey;
   }
   function url(model) {
     return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${getKey()}`;
