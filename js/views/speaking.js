@@ -70,7 +70,7 @@ window.Views.speaking = function (mount, params) {
           " · ",
           el("a", { onclick: () => location.hash = `#/week/${w}/day/${d}` }, `Day ${d}`),
           " · ",
-          el("span", null, `Speaking · ${slot}`),
+          el("span", null, `TOEFL · Speaking · ${slot}`),
         ]),
         el("h1", null, conv.title),
       ]),

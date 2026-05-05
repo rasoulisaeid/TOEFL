@@ -20,7 +20,7 @@ window.Views.reading = function (mount, params) {
         el("a", { onclick: () => location.hash = "#/dashboard" }, "Dashboard"), " · ",
         el("a", { onclick: () => location.hash = "#/week/" + w }, `Week ${w}`), " · ",
         el("a", { onclick: () => location.hash = `#/week/${w}/day/${d}` }, `Day ${d}`), " · ",
-        el("span", null, "Reading"),
+        el("span", null, "TOEFL · Reading"),
       ]),
       el("h1", null, "Reading practice"),
       el("div", { class: "muted", style: "margin-top:6px" }, "Three short texts. Read calmly, tap any unknown word in the sidebar, then try the questions."),

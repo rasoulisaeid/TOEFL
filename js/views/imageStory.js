@@ -33,7 +33,7 @@ window.Views.imageStory = function (mount, params) {
         " · ",
         el("a", { onclick: () => location.hash = `#/week/${w}/day/${d}` }, `Day ${d}`),
         " · ",
-        el("span", null, `Image story · ${slot}`),
+        el("span", null, `TOEFL · Image story · ${slot}`),
       ]),
       el("h1", null, story.title),
       el("div", { class: "muted", style: "margin-top:6px" }, "Generate the 8-panel grid in Gemini Nano Banana, paste it below, then describe each scene one by one."),
