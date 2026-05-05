@@ -1,65 +1,63 @@
-/* Firebase Cloud Sync — REST API + SSE (Server-Sent Events)
+/* Firebase Cloud Sync — fully automatic, zero setup
  *
- * Writes:  HTTPS PUT  → instant push on every Storage change
- * Reads:   EventSource SSE → Firebase pushes changes in real-time (no polling)
+ * Firebase is the shared database. localStorage is just a fast cache.
+ * On load: Firebase → localStorage, then subscribe to live updates via SSE.
+ * On write: localStorage + Firebase simultaneously.
  *
- * Works on GitHub Pages, file://, anywhere — no WebSocket required.
+ * No sync key, no modal, no buttons. It just works.
  */
 
 (function () {
-  const DB_URL       = "https://toefl-c71e5-default-rtdb.firebaseio.com";
-  const STORAGE_KEY  = "pathway:v1";
-  const SYNC_KEY_LOC = "pathway:syncKey";
+  const DB_URL      = "https://toefl-c71e5-default-rtdb.firebaseio.com";
+  const FAMILY_KEY  = "rasoulisaeid";
+  const STORAGE_KEY = "pathway:v1";
 
-  let syncKey    = null;
+  let evtSource  = null;
   let pushTimer  = null;
-  let lastPushed = null;   // avoid redundant pushes
-  let evtSource  = null;   // SSE connection
+  let lastPushed = null;
 
-  /* ── REST URL ──────────────────────────────────────── */
-  function url() {
-    return `${DB_URL}/families/${syncKey}/data.json`;
+  /* ── REST helpers ──────────────────────────────────── */
+  function apiUrl() {
+    return `${DB_URL}/families/${FAMILY_KEY}/data.json`;
   }
 
-  /* ── Local helpers ─────────────────────────────────── */
+  /* ── Local cache ───────────────────────────────────── */
   function readLocal() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
     catch (e) { return {}; }
   }
   function writeLocal(obj) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
-    catch (e) { console.warn("writeLocal error", e); }
+    catch (e) { console.warn("cache write error", e); }
   }
 
-  /* ── Status badge ──────────────────────────────────── */
+  /* ── Status badge (passive indicator only) ─────────── */
   function setStatus(s) {
     const el = document.getElementById("syncStatus");
     if (!el) return;
     const map = {
-      synced      : ["☁️",  "Synced",      "synced"],
-      syncing     : ["⟳",   "Syncing…",    "syncing"],
-      error       : ["⚠️",  "Sync error",  "error"],
-      disconnected: ["🔗",  "Not syncing", "disconnected"],
+      synced: ["☁️", "Synced",     "synced"],
+      saving: ["⟳",  "Saving…",    "syncing"],
+      error : ["⚠️", "Sync error", "error"],
+      loading:["⟳",  "Loading…",   "syncing"],
     };
-    const [icon, label, cls] = map[s] || ["🔗", s, "disconnected"];
+    const [icon, label, cls] = map[s] || ["☁️", s, "synced"];
     el.textContent = `${icon} ${label}`;
     el.className   = `sync-badge ${cls}`;
     el.title       = label;
+    el.style.cursor = "default";
   }
 
-  /* ── Push: local → cloud ────────────────────────────
-     Debounced 1 s so rapid consecutive writes only hit
-     Firebase once.                                      */
+  /* ── Push: local → Firebase (debounced 800ms) ──────── */
   function schedulePush() {
-    if (!syncKey) return;
     clearTimeout(pushTimer);
     pushTimer = setTimeout(async () => {
       const data   = readLocal();
       const asJson = JSON.stringify(data);
-      if (asJson === lastPushed) return;   // nothing new
-      setStatus("syncing");
+      if (asJson === lastPushed) return;
+      setStatus("saving");
       try {
-        const res = await fetch(url(), {
+        const res = await fetch(apiUrl(), {
           method : "PUT",
           headers: { "Content-Type": "application/json" },
           body   : JSON.stringify({ payload: data, updatedAt: Date.now() }),
@@ -69,166 +67,90 @@
         setStatus("synced");
       } catch (e) {
         setStatus("error");
-        console.error("🔴 Sync push failed:", e.message);
+        console.error("🔴 Save failed:", e.message);
       }
-    }, 1000);
+    }, 800);
   }
 
-  /* ── Initial pull: cloud → local ───────────────────── */
+  /* ── Pull: Firebase → local (one-time on load) ─────── */
   async function pullOnce() {
-    setStatus("syncing");
+    setStatus("loading");
     try {
-      const res = await fetch(url());
+      const res = await fetch(apiUrl());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const remote = await res.json();
       if (remote && remote.payload) {
-        const remoteJson = JSON.stringify(remote.payload);
-        const localJson  = JSON.stringify(readLocal());
-        if (remoteJson !== localJson) {
-          writeLocal(remote.payload);
-          lastPushed = remoteJson;
-        } else {
-          lastPushed = localJson;
-        }
+        writeLocal(remote.payload);
+        lastPushed = JSON.stringify(remote.payload);
       }
       setStatus("synced");
     } catch (e) {
       setStatus("error");
-      console.error("🔴 Sync pull failed:", e.message);
+      console.error("🔴 Load failed:", e.message);
     }
   }
 
-  /* ── Real-time listener via SSE ─────────────────────
-     Firebase Realtime Database supports EventSource —
-     the server pushes a 'put' event whenever data changes.
-     No polling, no WebSocket — purely HTTP streaming.   */
+  /* ── Real-time: SSE stream from Firebase ───────────── */
   function subscribeSSE() {
-    if (evtSource) { evtSource.close(); evtSource = null; }
-
-    evtSource = new EventSource(url());
+    if (evtSource) evtSource.close();
+    evtSource = new EventSource(apiUrl());
 
     evtSource.addEventListener("put", (e) => {
       try {
-        const { data } = JSON.parse(e.data);   // { path, data }
-        if (!data) return;                      // null = deleted
-        const incoming = data.payload || data;  // handle root vs nested
+        const { data } = JSON.parse(e.data);
+        if (!data) return;
+        const incoming = data.payload || data;
         if (!incoming || typeof incoming !== "object") return;
-
         const incomingJson = JSON.stringify(incoming);
-        if (incomingJson === lastPushed) return;  // our own write reflected back
-
+        if (incomingJson === lastPushed) return;  // own write echoed back
         writeLocal(incoming);
         lastPushed = incomingJson;
         setStatus("synced");
-        // Silently refresh the current view so partner's progress appears
         window.dispatchEvent(new Event("hashchange"));
       } catch (err) {
         console.warn("SSE parse error", err);
       }
     });
 
-    evtSource.onopen = () => setStatus("synced");
+    evtSource.addEventListener("patch", (e) => {
+      try {
+        const { data } = JSON.parse(e.data);
+        if (!data) return;
+        const local = readLocal();
+        Object.assign(local, data.payload || data);
+        writeLocal(local);
+        lastPushed = JSON.stringify(local);
+        setStatus("synced");
+        window.dispatchEvent(new Event("hashchange"));
+      } catch (err) {
+        console.warn("SSE patch error", err);
+      }
+    });
 
-    evtSource.onerror = () => {
-      setStatus("error");
-      // SSE auto-reconnects on its own — no manual retry needed
+    evtSource.onopen = () => setStatus("synced");
+    evtSource.onerror = () => setStatus("error");
+  }
+
+  /* ── Patch Storage to auto-sync every write ────────── */
+  function patchStorage() {
+    const origSet = window.Storage.set.bind(window.Storage);
+    window.Storage.set = function (k, v) {
+      origSet(k, v);
+      schedulePush();
+    };
+    const origDel = window.Storage.delete.bind(window.Storage);
+    window.Storage.delete = function (k) {
+      origDel(k);
+      schedulePush();
     };
   }
 
-  /* ── Modal ─────────────────────────────────────────── */
-  function openModal() {
-    UI.modal((m, close) => {
-      const cur = syncKey || "";
-      const inp = UI.el("input", {
-        value      : cur,
-        placeholder: "e.g. family-toefl-2025",
-        style      : "width:100%;margin-top:8px",
-      });
-      m.appendChild(UI.el("h2", null, "☁️ Cloud Sync"));
-      m.appendChild(UI.el("div", { class: "muted", style: "margin:8px 0 12px" },
-        "Enter the same sync key on both devices. " +
-        "Changes sync in real-time the moment either of you does something."
-      ));
-      m.appendChild(UI.el("label", null, [
-        UI.el("div", { class: "muted", style: "font-size:12px;margin-bottom:4px" }, "Sync Key"),
-        inp,
-      ]));
-      m.appendChild(UI.el("div", { class: "muted", style: "font-size:11px;margin-top:6px" },
-        "Use a private phrase only you two know."
-      ));
-      m.appendChild(UI.el("div", { class: "modal-actions", style: "margin-top:18px" }, [
-        UI.el("button", { class: "btn", text: "Cancel", onclick: close }),
-        cur ? UI.el("button", {
-          class: "btn ghost danger", text: "Disconnect",
-          onclick: () => { window.Sync.disconnect(); close(); },
-        }) : null,
-        UI.el("button", {
-          class: "btn primary",
-          text : syncKey ? "Update Key" : "Start Syncing",
-          onclick: async () => {
-            const ok = await window.Sync.connect(inp.value);
-            if (ok) close();
-          },
-        }),
-      ]));
-    });
+  /* ── Bootstrap: runs automatically on page load ────── */
+  async function init() {
+    patchStorage();
+    await pullOnce();
+    subscribeSSE();
   }
 
-  /* ── Public API ────────────────────────────────────── */
-  window.Sync = {
-    getSyncKey() { return syncKey; },
-
-    onWrite() { schedulePush(); },
-
-    async connect(key) {
-      if (!key || key.trim().length < 4) {
-        UI.toast("Sync key must be at least 4 characters.");
-        return false;
-      }
-      // disconnect old SSE if key is changing
-      if (evtSource) { evtSource.close(); evtSource = null; }
-
-      syncKey = key.trim().toLowerCase().replace(/[^a-z0-9\-_]/g, "-");
-      localStorage.setItem(SYNC_KEY_LOC, syncKey);
-
-      await pullOnce();      // get latest state first
-      subscribeSSE();        // then subscribe to live updates
-      UI.toast("☁️ Syncing as: " + syncKey);
-      return true;
-    },
-
-    disconnect() {
-      if (evtSource) { evtSource.close(); evtSource = null; }
-      clearTimeout(pushTimer);
-      syncKey = null;
-      localStorage.removeItem(SYNC_KEY_LOC);
-      setStatus("disconnected");
-      UI.toast("Sync disconnected.");
-    },
-
-    openModal,
-
-    async autoConnect() {
-      const saved = localStorage.getItem(SYNC_KEY_LOC);
-      if (!saved) { setStatus("disconnected"); return; }
-      syncKey = saved;
-      await pullOnce();
-      subscribeSSE();
-    },
-  };
-
-  /* ── Patch Storage.set to trigger push ─────────────── */
-  const origSet = window.Storage.set.bind(window.Storage);
-  window.Storage.set = function (k, v) {
-    origSet(k, v);
-    window.Sync.onWrite();
-  };
-  const origDel = window.Storage.delete.bind(window.Storage);
-  window.Storage.delete = function (k) {
-    origDel(k);
-    window.Sync.onWrite();
-  };
-
-  /* ── Bootstrap ─────────────────────────────────────── */
-  window.Sync.autoConnect();
+  init();
 })();
