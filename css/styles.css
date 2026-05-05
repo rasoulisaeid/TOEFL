@@ -1524,7 +1524,7 @@ main {
   margin: 0 6px;
   position: relative;
   line-height: 1;
-  transform: translateY(12px); /* Nudge down so underline matches text baseline */
+  transform: translateY(6px);
 }
 
 .dict-pair-row {
@@ -1534,7 +1534,7 @@ main {
   background: var(--card-2);
   border: 1.5px solid var(--border);
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.04);
   animation: slide-up .3s ease-out;
 }
