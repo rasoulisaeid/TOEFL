@@ -1474,6 +1474,10 @@ main {
   margin-bottom: 22px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 .hero-card::after {
   content: ""; position: absolute;
@@ -1483,4 +1487,41 @@ main {
   background: rgba(255,255,255,.12);
 }
 .hero-card h1 { color: white; font-size: 32px; margin: 0; }
-.hero-card .sub { font-size: 15px; opacity: .92; margin-top: 4px; font-weight: 600; }
+.hero-content { position: relative; z-index: 1; flex: 1; }
+.hero-stats {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 28px;
+  background: rgba(0,0,0,0.12);
+  padding: 18px 24px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.hero-mini-stat { display: flex; flex-direction: column; gap: 2px; min-width: 80px; }
+.hero-mini-stat .label { font-size: 10px; text-transform: uppercase; opacity: 0.8; font-weight: 800; letter-spacing: 0.08em; }
+.hero-mini-stat .value { font-size: 20px; font-weight: 900; }
+.hero-progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.hero-progress-bar i { display: block; height: 100%; background: white; border-radius: 4px; }
+
+.progress-circle {
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  margin-top: 4px;
+}
+.progress-circle::after {
+  content: ""; position: absolute;
+  width: 48px; height: 48px;
+  background: #5d51e8; /* slightly darker primary for contrast */
+  border-radius: 50%;
+}
+.progress-circle span { position: relative; z-index: 2; font-weight: 900; font-size: 13px; }
+
+@media (max-width: 800px) {
+  .hero-card { flex-direction: column; align-items: stretch; gap: 24px; }
+  .hero-stats { justify-content: space-around; gap: 15px; padding: 15px; }
+  .hero-mini-stat { min-width: 0; flex: 1; align-items: center; text-align: center; }
+  .hero-progress-bar { width: 60px; }
+}

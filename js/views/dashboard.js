@@ -17,10 +17,9 @@ window.Views.dashboard = function (mount) {
   const cardsLearned = State.getCards().length;
 
   const hero = el("div", { class: "hero-card" }, [
-    el("div", { style: "position:relative;z-index:1" }, [
+    el("div", { class: "hero-content" }, [
       el("div", { style: "font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;opacity:.85" }, "Welcome back ✨"),
       el("h1", { style: "margin:8px 0 6px" }, "Let's keep going"),
-      el("div", { class: "sub" }, `${weeksDone}/25 weeks · ${pct(avgProgress)}% overall · ${cardsLearned} words in Leitner`),
       el("div", { style: "margin-top:18px;display:flex;gap:10px;flex-wrap:wrap" }, [
         el("button", {
           class: "btn",
@@ -32,6 +31,27 @@ window.Views.dashboard = function (mount) {
           style: "background:rgba(255,255,255,.16);color:white;border-color:rgba(255,255,255,.24);border-bottom-color:rgba(0,0,0,.18)",
           onclick: () => location.hash = "#/leitner",
         }, "📚  Review words"),
+      ]),
+    ]),
+    el("div", { class: "hero-stats" }, [
+      el("div", { class: "hero-mini-stat" }, [
+        el("div", { class: "label" }, "Weeks"),
+        el("div", { class: "value" }, `${weeksDone}/25`),
+        el("div", { class: "hero-progress-bar" }, el("i", { style: `width:${(weeksDone / 25) * 100}%` })),
+      ]),
+      el("div", { class: "hero-mini-stat", style: "align-items: center;" }, [
+        el("div", { class: "label" }, "Overall"),
+        el("div", { 
+          class: "progress-circle", 
+          style: `background: conic-gradient(rgba(255,255,255,0.95) 0% ${pct(avgProgress)}%, rgba(255,255,255,0.2) ${pct(avgProgress)}% 100%)` 
+        }, [
+          el("span", null, `${pct(avgProgress)}%`),
+        ]),
+      ]),
+      el("div", { class: "hero-mini-stat" }, [
+        el("div", { class: "label" }, "Vocabulary"),
+        el("div", { class: "value" }, cardsLearned),
+        el("div", { class: "muted", style: "font-size:10px;color:rgba(255,255,255,0.7)" }, "words in Leitner"),
       ]),
     ]),
   ]);
