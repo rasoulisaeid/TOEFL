@@ -1,11 +1,11 @@
 /* Gemini API integration for word analysis */
 window.Gemini = (function() {
   const API_KEY = "AIzaSyCihWzYeHx38dOd4YpPKLkW3_OtQCe60Og";
-  const MODEL = "gemini-1.5-flash"; // Flash is faster and more reliable for simple tasks like this
+  const MODEL = "gemini-pro"; // Using stable gemini-pro (1.0) for maximum compatibility
 
   return {
     async analyzeWord(word) {
-      const prompt = `Return a JSON object for the English word "${word}" with exactly these fields: "word", "meaning" (a concise and clear Persian definition), "example" (a simple English sentence using the word), and "pos" (part of speech like noun, verb, adj). Provide ONLY the raw JSON string, no markdown formatting.`;
+      const prompt = `Return a JSON object for the English word "${word}" with these fields: "word", "meaning" (concise Persian definition), "example" (a simple English sentence using the word), and "pos" (part of speech). Provide ONLY the raw JSON string.`;
       
       const url = `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${API_KEY}`;
       
