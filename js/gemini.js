@@ -103,15 +103,17 @@ window.Gemini = (function() {
       const unique = [...new Set(words.map(w => w.toLowerCase()))];
       const prompt = [
         `You are helping create a listening comprehension exercise for an English learner.`,
-        `For each word below, provide ONE plausible but WRONG alternative word that:`,
-        `- Is the same part of speech`,
-        `- Is similar in meaning or sound (to make it tricky)`,
-        `- Would almost fit the sentence but is not quite right`,
+        `For each word below, provide ONE real, common English word as a distractor that:`,
+        `- MUST be a real English word (NEVER invent or misspell words)`,
+        `- Is the same part of speech as the original`,
+        `- Sounds similar OR has a related meaning (to make it tricky but fair)`,
+        `- Examples of GOOD distractors: "like" → "love", "started" → "stopped", "morning" → "evening", "coffee" → "cocoa", "remember" → "recall"`,
+        `- Examples of BAD distractors: "coffee" → "goffee" (NOT a real word!), "used" → "ased" (NOT a real word!)`,
         ``,
         `Words: ${unique.join(", ")}`,
         ``,
-        `Return a JSON object where each key is the original word (lowercase) and the value is the distractor word (lowercase).`,
-        `Example: {"like": "enjoy", "drank": "sipped", "morning": "evening"}`,
+        `Return a JSON object where each key is the original word (lowercase) and the value is the distractor (lowercase).`,
+        `CRITICAL: Every distractor MUST be a real, common English word that exists in dictionaries.`,
       ].join("\n");
       try {
         const result = await callJSON(prompt, { temperature: 0.5 });

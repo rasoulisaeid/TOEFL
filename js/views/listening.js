@@ -77,7 +77,6 @@ function buildListening(w, d, t) {
   const side = el("div", { class: "col" });
 
   main.appendChild(buildAudioCard(t));
-  main.appendChild(buildTranscriptCard(t));
 
   // Dictation Challenge
   main.appendChild(el("div", { class: "section-title" }, "Dictation challenge"));
@@ -295,8 +294,8 @@ function selectBlanks(tokens, ratio = 0.5) {
 function buildDictationCard(t) {
   const { el } = UI;
   const card = el("div", { class: "card dictation-card" });
-  const storageKey = `dictation:${t.id}`;
-  const cacheKey = `dictation:distractors:${t.id}`;
+  const storageKey = `dictation:v2:${t.id}`;
+  const cacheKey = `dictation:distractors:v2:${t.id}`;
 
   // Header
   card.appendChild(el("div", { class: "row" }, [
@@ -441,18 +440,22 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
   updateScore();
 }
 
+// Real English words as fallback distractors — grouped by rough category
+const FALLBACK_POOL = {
+  verb: ["think","believe","wonder","notice","expect","imagine","decide","suggest","consider","realize","understand","discover","explain","describe","mention","recall","forget","prefer","enjoy","avoid","attempt","manage","struggle","continue","remain","become","appear","seem","provide","require"],
+  noun: ["moment","reason","feeling","thought","option","method","detail","pattern","signal","habit","effort","result","chance","factor","nature","period","memory","purpose","context","source","surface","concern","support","amount","value","quality","figure","change","level","system"],
+  adj:  ["quiet","simple","gentle","common","sudden","recent","likely","slight","entire","proper","normal","steady","actual","narrow","bitter","bright","clever","empty","smooth","rough"],
+  adv:  ["almost","simply","gently","barely","hardly","mostly","partly","rarely","slowly","deeply","merely","fully","highly","clearly","quickly","finally","perhaps","likely","often","still"],
+  misc: ["morning","evening","kitchen","window","garden","corner","bridge","forest","market","bottle","letter","mirror","basket","candle","pillow","shadow","silver","golden","flavor","shelter"]
+};
+const ALL_FALLBACKS = [].concat(...Object.values(FALLBACK_POOL));
+
 function fallbackDistractor(word) {
-  // Simple fallback: shift first letter
-  const vowels = "aeiou";
-  const first = word[0];
-  if (vowels.includes(first)) {
-    const idx = vowels.indexOf(first);
-    return vowels[(idx + 1) % vowels.length] + word.slice(1);
-  }
-  const consonants = "bcdfghjklmnpqrstvwxyz";
-  const ci = consonants.indexOf(first);
-  if (ci >= 0) return consonants[(ci + 3) % consonants.length] + word.slice(1);
-  return "other";
+  // Pick a real English word of similar length
+  const len = word.length;
+  const candidates = ALL_FALLBACKS.filter(w => Math.abs(w.length - len) <= 2 && w !== word);
+  if (candidates.length === 0) return ALL_FALLBACKS[word.charCodeAt(0) % ALL_FALLBACKS.length];
+  return candidates[(word.charCodeAt(0) + word.charCodeAt(Math.min(1, word.length - 1))) % candidates.length];
 }
 
 function catEmojiL(c) {
