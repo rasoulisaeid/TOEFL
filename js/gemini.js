@@ -102,22 +102,20 @@ window.Gemini = (function() {
     async generateDistractors(words) {
       const unique = [...new Set(words.map(w => w.toLowerCase()))];
       const prompt = [
-        `You are helping create a listening comprehension exercise for an English learner.`,
-        `For each word below, provide ONE real, common English word as a distractor that:`,
-        `- MUST be a real English word (NEVER invent or misspell words)`,
-        `- Is the same part of speech as the original`,
-        `- Sounds similar OR has a related meaning (to make it tricky but fair)`,
-        `- Examples of GOOD distractors: "like" → "love", "started" → "stopped", "morning" → "evening", "coffee" → "cocoa", "remember" → "recall"`,
-        `- Examples of BAD distractors: "coffee" → "goffee" (NOT a real word!), "used" → "ased" (NOT a real word!)`,
+        `You are creating a listening dictation exercise. For each word, provide ONE real English word that SOUNDS SIMILAR (similar pronunciation/phonetics) but is a DIFFERENT word.`,
+        ``,
+        `Rules:`,
+        `- Every distractor MUST be a real English dictionary word`,
+        `- Focus on SIMILAR PRONUNCIATION, rhyming, or minimal sound changes`,
+        `- Examples: "coffee" → "toffee", "drank" → "drank" is wrong → use "frank", "morning" → "mourning", "used" → "mused", "started" → "charted", "remember" → "ember", "quiet" → "quite", "white" → "write", "need" → "knead", "even" → "oven"`,
+        `- NEVER invent fake words. Every word must exist in an English dictionary.`,
         ``,
         `Words: ${unique.join(", ")}`,
         ``,
-        `Return a JSON object where each key is the original word (lowercase) and the value is the distractor (lowercase).`,
-        `CRITICAL: Every distractor MUST be a real, common English word that exists in dictionaries.`,
+        `Return JSON: {"word": "distractor", ...} — all lowercase.`,
       ].join("\n");
       try {
-        const result = await callJSON(prompt, { temperature: 0.5 });
-        // Ensure we have a valid mapping
+        const result = await callJSON(prompt, { temperature: 0.4, model: "gemini-3-pro-preview" });
         if (result && typeof result === "object" && !result._raw) return result;
         return {};
       } catch (e) {

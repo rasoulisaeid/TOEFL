@@ -294,8 +294,8 @@ function selectBlanks(tokens, ratio = 0.5) {
 function buildDictationCard(t) {
   const { el } = UI;
   const card = el("div", { class: "card dictation-card" });
-  const storageKey = `dictation:v2:${t.id}`;
-  const cacheKey = `dictation:distractors:v2:${t.id}`;
+  const storageKey = `dictation:v3:${t.id}`;
+  const cacheKey = `dictation:distractors:v3:${t.id}`;
 
   // Header
   card.appendChild(el("div", { class: "row" }, [
@@ -304,33 +304,27 @@ function buildDictationCard(t) {
     el("span", { class: "spacer" }),
     el("span", { class: "chip muted" }, "~50% hidden"),
   ]));
-  card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:4px;margin-bottom:14px" }, "Listen to the audio and select the correct word for each blank."));
+  card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:4px;margin-bottom:14px" }, "Listen and pick the correct word from each pair to fill the numbered blanks."));
 
   const body = el("div", { class: "dictation-body" });
   card.appendChild(body);
 
-  // Tokenize and select blanks
   const tokens = tokenizeForDictation(t.text);
   const blankIndices = selectBlanks(tokens);
   const blankedWords = tokens.filter(tk => blankIndices.has(tk.idx)).map(tk => tk.clean);
 
-  // Load saved state
   let state = Storage.get(storageKey, { answers: {}, completed: false });
-
-  // Try to load cached distractors
   const cached = Storage.get(cacheKey, null);
 
   if (cached) {
-    renderDictation(body, tokens, blankIndices, cached, state, storageKey, card);
+    renderDictation(body, tokens, blankIndices, cached, state, storageKey);
   } else {
-    // Show loading state
-    const loading = el("div", { class: "thinking" }, "Generating exercise with Gemini...");
+    const loading = el("div", { class: "thinking" }, "Generating exercise with Gemini Pro...");
     body.appendChild(loading);
-
     Gemini.generateDistractors(blankedWords).then(distractors => {
       Storage.set(cacheKey, distractors);
       UI.clear(body);
-      renderDictation(body, tokens, blankIndices, distractors, state, storageKey, card);
+      renderDictation(body, tokens, blankIndices, distractors, state, storageKey);
     }).catch(err => {
       UI.clear(body);
       body.appendChild(el("div", { class: "muted", style: "text-align:center;padding:20px" }, "Failed to generate exercise. " + (err.message || "")));
@@ -340,21 +334,37 @@ function buildDictationCard(t) {
   return card;
 }
 
-function renderDictation(body, tokens, blankIndices, distractors, state, storageKey, card) {
+function renderDictation(body, tokens, blankIndices, distractors, state, storageKey) {
   const { el } = UI;
   UI.clear(body);
 
-  const totalBlanks = blankIndices.size;
-  let correctCount = 0;
+  // Number the blanks
+  const blankList = [];
+  let num = 0;
+  const blankMap = {}; // idx -> { num, correctWord, correctLower, distractor }
+  tokens.forEach(tk => {
+    if (blankIndices.has(tk.idx)) {
+      num++;
+      const correctWord = tk.raw.trim();
+      const correctLower = tk.clean;
+      const distractor = distractors[correctLower] || fallbackDistractor(correctLower);
+      blankMap[tk.idx] = { num, correctWord, correctLower, distractor };
+      blankList.push({ num, idx: tk.idx, correctWord, correctLower, distractor });
+    }
+  });
 
-  // Score bar
+  const totalBlanks = blankList.length;
+
+  // Score
   const scoreLabel = el("span", { class: "muted", style: "font-size:13px" });
   const scoreBar = el("div", { class: "dictation-score-bar" });
   const scoreFill = el("div");
   scoreBar.appendChild(scoreFill);
 
+  const blankElements = {}; // idx -> DOM element for the blank in the passage
+
   function updateScore() {
-    correctCount = Object.values(state.answers).filter(a => a === true).length;
+    const correctCount = Object.values(state.answers).filter(a => a === true).length;
     scoreLabel.textContent = `${correctCount} / ${totalBlanks} correct`;
     const pct = totalBlanks > 0 ? Math.round((correctCount / totalBlanks) * 100) : 0;
     scoreFill.style.width = pct + "%";
@@ -365,73 +375,107 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
     }
   }
 
-  body.appendChild(el("div", { class: "row", style: "margin-bottom:12px" }, [scoreLabel, el("span", { class: "spacer" }), scoreBar]));
+  body.appendChild(el("div", { class: "row", style: "margin-bottom:12px" }, [
+    scoreLabel, el("span", { class: "spacer" }), scoreBar,
+    el("button", { class: "btn sm ghost", style: "margin-left:8px", onclick: () => {
+      state.answers = {};
+      state.completed = false;
+      Storage.set(storageKey, state);
+      renderDictation(body, tokens, blankIndices, distractors, state, storageKey);
+    }}, "Reset"),
+  ]));
 
-  // Reset button
-  const resetBtn = el("button", { class: "btn sm ghost", style: "margin-bottom:10px", onclick: () => {
-    state.answers = {};
-    state.completed = false;
-    Storage.set(storageKey, state);
-    renderDictation(body, tokens, blankIndices, distractors, state, storageKey, card);
-  }}, "Reset");
-  body.appendChild(el("div", { class: "row", style: "margin-bottom:10px" }, [el("span", { class: "spacer" }), resetBtn]));
+  // === WORD BANK (pairs box above the passage) ===
+  const wordBank = el("div", { class: "dict-word-bank" });
+  wordBank.appendChild(el("div", { class: "dict-bank-label" }, "Word bank — pick the correct word"));
 
-  // Build the passage
+  const pairsWrap = el("div", { class: "dict-pairs" });
+
+  blankList.forEach(b => {
+    const answered = state.answers[b.idx];
+    const pairEl = el("div", { class: "dict-pair" + (answered != null ? " answered" : "") });
+    pairEl.appendChild(el("span", { class: "dict-pair-num" }, String(b.num)));
+
+    // Build two options, shuffled
+    const options = [
+      { text: b.correctWord, isCorrect: true },
+      { text: b.distractor, isCorrect: false },
+    ];
+    if ((b.idx * 7) % 3 !== 0) options.reverse();
+
+    if (answered != null) {
+      // Already answered — show result
+      options.forEach(opt => {
+        const cls = opt.isCorrect ? "dict-pair-word correct" : "dict-pair-word faded";
+        pairEl.appendChild(el("span", { class: cls }, opt.text));
+      });
+    } else {
+      // Clickable options
+      options.forEach(opt => {
+        const btn = el("button", {
+          class: "dict-pair-word clickable",
+          text: opt.text,
+          onclick: () => {
+            state.answers[b.idx] = opt.isCorrect;
+            Storage.set(storageKey, state);
+            // Update the blank in passage
+            const blankEl = blankElements[b.idx];
+            if (blankEl) {
+              UI.clear(blankEl);
+              blankEl.textContent = b.correctWord;
+              blankEl.className = "dict-blank " + (opt.isCorrect ? "correct" : "revealed");
+            }
+            // Update the pair
+            UI.clear(pairEl);
+            pairEl.classList.add("answered");
+            pairEl.appendChild(el("span", { class: "dict-pair-num" }, String(b.num)));
+            options.forEach(o => {
+              const cls = o.isCorrect ? "dict-pair-word correct" : "dict-pair-word faded";
+              pairEl.appendChild(el("span", { class: cls }, o.text));
+            });
+            updateScore();
+          }
+        });
+        pairEl.appendChild(btn);
+      });
+    }
+
+    pairsWrap.appendChild(pairEl);
+  });
+
+  wordBank.appendChild(pairsWrap);
+  body.appendChild(wordBank);
+
+  // === PASSAGE with numbered blanks ===
   const passage = el("div", { class: "dictation-passage" });
 
   tokens.forEach(tk => {
     if (blankIndices.has(tk.idx)) {
-      // This is a blank
-      const correctWord = tk.raw.trim();
-      const correctLower = tk.clean;
-      const distractor = (distractors[correctLower] || fallbackDistractor(correctLower));
-
+      const b = blankMap[tk.idx];
       const answered = state.answers[tk.idx];
-      const blankEl = el("span", { class: "dict-blank" + (answered === true ? " correct" : answered === false ? " wrong" : "") });
+      let cls = "dict-blank";
+      let text;
 
       if (answered === true) {
-        // Already answered correctly
-        blankEl.textContent = correctWord;
+        cls += " correct";
+        text = b.correctWord;
       } else if (answered === false) {
-        // Already answered wrong — show correct answer with strikethrough on wrong
-        blankEl.textContent = correctWord;
-        blankEl.classList.add("revealed");
+        cls += " revealed";
+        text = b.correctWord;
       } else {
-        // Not yet answered — show two options
-        const options = [
-          { text: correctWord, isCorrect: true },
-          { text: distractor, isCorrect: false },
-        ];
-        // Shuffle deterministically
-        if ((tk.idx * 7) % 3 !== 0) options.reverse();
-
-        options.forEach(opt => {
-          const btn = el("button", {
-            class: "dict-option",
-            text: opt.text,
-            onclick: () => {
-              state.answers[tk.idx] = opt.isCorrect;
-              Storage.set(storageKey, state);
-              // Replace blank with result
-              UI.clear(blankEl);
-              if (opt.isCorrect) {
-                blankEl.classList.add("correct");
-                blankEl.textContent = correctWord;
-              } else {
-                blankEl.classList.add("wrong");
-                blankEl.textContent = correctWord;
-                blankEl.classList.add("revealed");
-              }
-              updateScore();
-            }
-          });
-          blankEl.appendChild(btn);
-        });
+        text = "";
       }
 
+      const blankEl = el("span", { class: cls });
+      if (text) {
+        blankEl.textContent = text;
+      } else {
+        blankEl.appendChild(el("span", { class: "dict-blank-num" }, String(b.num)));
+        blankEl.appendChild(el("span", { class: "dict-blank-line" }));
+      }
+      blankElements[tk.idx] = blankEl;
       passage.appendChild(blankEl);
     } else {
-      // Normal text token
       passage.appendChild(document.createTextNode(tk.raw));
     }
   });
@@ -440,18 +484,16 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
   updateScore();
 }
 
-// Real English words as fallback distractors — grouped by rough category
+// Real English words as fallback distractors
 const FALLBACK_POOL = {
-  verb: ["think","believe","wonder","notice","expect","imagine","decide","suggest","consider","realize","understand","discover","explain","describe","mention","recall","forget","prefer","enjoy","avoid","attempt","manage","struggle","continue","remain","become","appear","seem","provide","require"],
-  noun: ["moment","reason","feeling","thought","option","method","detail","pattern","signal","habit","effort","result","chance","factor","nature","period","memory","purpose","context","source","surface","concern","support","amount","value","quality","figure","change","level","system"],
+  verb: ["think","believe","wonder","notice","expect","imagine","decide","suggest","consider","realize","understand","discover","explain","describe","mention","recall","forget","prefer","enjoy","avoid"],
+  noun: ["moment","reason","feeling","thought","option","method","detail","pattern","signal","habit","effort","result","chance","factor","nature","period","memory","purpose","context","source"],
   adj:  ["quiet","simple","gentle","common","sudden","recent","likely","slight","entire","proper","normal","steady","actual","narrow","bitter","bright","clever","empty","smooth","rough"],
-  adv:  ["almost","simply","gently","barely","hardly","mostly","partly","rarely","slowly","deeply","merely","fully","highly","clearly","quickly","finally","perhaps","likely","often","still"],
   misc: ["morning","evening","kitchen","window","garden","corner","bridge","forest","market","bottle","letter","mirror","basket","candle","pillow","shadow","silver","golden","flavor","shelter"]
 };
 const ALL_FALLBACKS = [].concat(...Object.values(FALLBACK_POOL));
 
 function fallbackDistractor(word) {
-  // Pick a real English word of similar length
   const len = word.length;
   const candidates = ALL_FALLBACKS.filter(w => Math.abs(w.length - len) <= 2 && w !== word);
   if (candidates.length === 0) return ALL_FALLBACKS[word.charCodeAt(0) % ALL_FALLBACKS.length];
