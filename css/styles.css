@@ -457,12 +457,11 @@ main {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
-@media (max-width: 1100px) { .weeks-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .weeks-grid { grid-template-columns: repeat(2, 1fr); }
   .stat-row { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .weeks-grid { grid-template-columns: 1fr; }
 }
 
@@ -566,9 +565,8 @@ main {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
-@media (max-width: 1100px) { .days-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 800px) { .days-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 500px) { .days-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .days-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .days-grid { grid-template-columns: 1fr; } }
 
 .day-card {
   padding: 16px;
@@ -1321,9 +1319,8 @@ main {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
-@media (max-width: 1100px) { .leitner-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px) { .leitner-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px) { .leitner-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .leitner-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .leitner-grid { grid-template-columns: 1fr; } }
 .box-card {
   padding: 18px;
   background: var(--card);
