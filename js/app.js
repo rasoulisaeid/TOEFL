@@ -92,6 +92,37 @@
     }
   });
 
+  // AI Settings Modal
+  document.getElementById("openSettings")?.addEventListener("click", () => {
+    UI.modal((m, close) => {
+      const curKey = Storage.get("gemini:key", "");
+      m.innerHTML = `
+        <div class="word-modal-content">
+          <h2>AI Settings</h2>
+          <p class="muted" style="font-size:13px; margin-bottom:15px">
+            Enter your Gemini API key here. It will be saved in your browser's local storage only.
+          </p>
+          <div class="col" style="gap:10px">
+            <label style="font-size:12px; font-weight:700">Gemini API Key</label>
+            <input type="password" id="geminiKeyInput" class="input" value="${curKey}" placeholder="AIza..." style="width:100%; padding:10px; border:1.5px solid var(--border); border-radius:8px">
+          </div>
+          <div class="modal-actions" style="margin-top:20px">
+            <button class="btn" id="cancelSettings">Cancel</button>
+            <button class="btn primary" id="saveSettings">Save Changes</button>
+          </div>
+        </div>
+      `;
+      m.querySelector("#cancelSettings").onclick = close;
+      m.querySelector("#saveSettings").onclick = () => {
+        const val = m.querySelector("#geminiKeyInput").value.trim();
+        Storage.set("gemini:key", val);
+        UI.toast("Settings saved! Refreshing...");
+        close();
+        setTimeout(() => location.reload(), 800);
+      };
+    });
+  });
+
   window.addEventListener("hashchange", route);
 
   // Initial paint

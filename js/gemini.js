@@ -4,7 +4,7 @@ window.Gemini = (function() {
   const FALLBACK_MODELS = ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
 
   function getKey() {
-    const configKey = (window.CONFIG && window.CONFIG.GEMINI_API_KEY) || "";
+    const configKey = (window.CONFIG && window.CONFIG.GEMINI_API_KEY) || (window.SECRETS && window.SECRETS.GEMINI_API_KEY) || "";
     const stored = (window.Storage && Storage.get) ? Storage.get("gemini:key") : null;
     // Only use stored key if it's a non-empty string
     return (stored && typeof stored === "string" && stored.trim() !== "") ? stored : configKey;
