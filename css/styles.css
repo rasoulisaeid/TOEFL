@@ -1534,7 +1534,7 @@ main {
   background: var(--card-2);
   border: 1.5px solid var(--border);
   border-radius: 8px;
-  margin-bottom: 9px;
+  margin-bottom: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.04);
   animation: slide-up .3s ease-out;
 }
