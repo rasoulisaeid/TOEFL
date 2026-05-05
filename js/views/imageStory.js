@@ -150,6 +150,17 @@ window.Views.imageStory = function (mount, params) {
       if (f) handleFile(f);
     });
     zone.addEventListener("paste", onPaste);
+    
+    // Manage global paste to ensure only one listener exists and it targets the current story
+    if (window._storyPasteHandler) {
+      window.removeEventListener("paste", window._storyPasteHandler);
+    }
+    window._storyPasteHandler = (e) => {
+      // Don't intercept paste if user is typing in a textarea or input
+      if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
+      onPaste(e);
+    };
+    window.addEventListener("paste", window._storyPasteHandler);
 
     function onPaste(e) {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
