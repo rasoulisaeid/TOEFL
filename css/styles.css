@@ -1034,9 +1034,8 @@ main {
   background: linear-gradient(135deg, var(--primary), var(--blue));
   color: white;
   border-color: var(--primary-dark);
-  box-shadow: 0 4px 14px rgba(139,92,246,.3);
 }
-.reading-tabs button:active { transform: translateY(2px); border-bottom-width: 2px; margin-bottom: 2px; }
+.reading-tabs button:active { transform: translateY(2px); }
 .reading-tabs .cat-icon { font-size: 18px; line-height: 1; }
 .reading-tabs .cat-done { color: var(--green); font-weight: 900; }
 
