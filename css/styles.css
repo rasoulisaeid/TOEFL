@@ -1080,8 +1080,8 @@ main {
   display: flex; align-items: center; gap: 14px;
 }
 .audio-play {
-  width: 68px; height: 64px;
-  border-radius: 50%;
+  width: 64px; height: 64px;
+  border-radius: 22px; /* Smooth rounded corners instead of a circle */
   background: linear-gradient(135deg, var(--primary), var(--blue));
   color: white;
   display: flex; align-items: center; justify-content: center;
@@ -1093,8 +1093,9 @@ main {
   outline: none;
 }
 .audio-play .material-symbols-rounded {
-  font-size: 36px;
-  margin-left: 2px; /* optical centering for triangle */
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 38px;
+  margin-left: 2px;
 }
 .audio-play:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 14px 28px rgba(139,92,246,.35), 0 5px 0 var(--primary-dark); }
 .audio-play:active {
