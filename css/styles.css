@@ -1498,7 +1498,10 @@ main {
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,0.1);
 }
-.hero-mini-stat { display: flex; flex-direction: column; gap: 2px; min-width: 80px; }
+.hero-mini-stat {
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 85px; align-items: center; text-align: center;
+}
 .hero-mini-stat .label { font-size: 10px; text-transform: uppercase; opacity: 0.8; font-weight: 800; letter-spacing: 0.08em; }
 .hero-mini-stat .value { font-size: 20px; font-weight: 900; }
 .hero-progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; margin-top: 6px; }

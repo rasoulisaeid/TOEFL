@@ -39,7 +39,7 @@ window.Views.dashboard = function (mount) {
         el("div", { class: "value" }, `${weeksDone}/25`),
         el("div", { class: "hero-progress-bar" }, el("i", { style: `width:${(weeksDone / 25) * 100}%` })),
       ]),
-      el("div", { class: "hero-mini-stat", style: "align-items: center;" }, [
+      el("div", { class: "hero-mini-stat" }, [
         el("div", { class: "label" }, "Overall"),
         el("div", { 
           class: "progress-circle", 
@@ -51,7 +51,7 @@ window.Views.dashboard = function (mount) {
       el("div", { class: "hero-mini-stat" }, [
         el("div", { class: "label" }, "Vocabulary"),
         el("div", { class: "value" }, cardsLearned),
-        el("div", { class: "muted", style: "font-size:10px;color:rgba(255,255,255,0.7)" }, "words in Leitner"),
+        el("div", { class: "muted", style: "font-size:10px;color:rgba(255,255,255,0.7)" }, "Words"),
       ]),
     ]),
   ]);
