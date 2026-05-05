@@ -1503,8 +1503,8 @@ main {
   .reading-layout { grid-template-columns: 1fr !important; }
   .img-story-area { grid-template-columns: 1fr !important; }
   .skill-grid { grid-template-columns: repeat(2, 1fr); }
-  .stat-row { grid-template-columns: repeat(4, 1fr); }
-  .weeks-grid { grid-template-columns: repeat(4, 1fr); }
+  .stat-row { grid-template-columns: repeat(3, 1fr); }
+  .weeks-grid { grid-template-columns: repeat(3, 1fr); }
   main { padding: 22px 22px 100px; }
   .hero-card { flex-direction: column; align-items: flex-start; padding: 22px; }
   .hero-stats { width: 100%; justify-content: space-around; gap: 8px; padding: 12px; }
