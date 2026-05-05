@@ -112,7 +112,7 @@ function buildAudioCard(t) {
   const audio = new Audio();
   audio.preload = "metadata";
 
-  const playBtn = el("button", { class: "audio-play", title: "Play / Pause", text: "▶" });
+  const playBtn = el("button", { class: "audio-play", title: "Play / Pause", html: '<span class="material-symbols-rounded">play_arrow</span>' });
   const progress = el("div", { class: "audio-progress" }, el("div"));
   const time = el("span", { class: "audio-time" }, "0:00 / —:—");
 
@@ -175,9 +175,9 @@ function buildAudioCard(t) {
       audio.pause();
     }
   });
-  audio.addEventListener("play", () => { playBtn.textContent = "⏸"; });
-  audio.addEventListener("pause", () => { playBtn.textContent = "▶"; });
-  audio.addEventListener("ended", () => { playBtn.textContent = "▶"; });
+  audio.addEventListener("play", () => { playBtn.innerHTML = '<span class="material-symbols-rounded">pause</span>'; });
+  audio.addEventListener("pause", () => { playBtn.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>'; });
+  audio.addEventListener("ended", () => { playBtn.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>'; });
   audio.addEventListener("loadedmetadata", () => updateTime());
   audio.addEventListener("timeupdate", () => updateTime());
   progress.addEventListener("click", (e) => {
