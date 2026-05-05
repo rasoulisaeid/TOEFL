@@ -1,6 +1,6 @@
 /* Gemini API integration for word analysis */
 window.Gemini = (function() {
-  const API_KEY = "AIzaSyAXon4ko9q3xUqHlBY4FBtbCH51EldCSPo";
+  const API_KEY = "AIzaSyCihWzYeHx38dOd4YpPKLkW3_OtQCe60Og";
   const MODEL = "gemini-1.5-flash"; // Flash is faster and more reliable for simple tasks like this
 
   return {
