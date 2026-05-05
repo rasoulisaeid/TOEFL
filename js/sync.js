@@ -21,6 +21,11 @@
   function apiUrl() {
     return `${DB_URL}/families/${FAMILY_KEY}/data.json`;
   }
+  function imageApiUrl(id) {
+    // Sanitize id for Firebase keys (replace : with _)
+    const safeId = id.replace(/:/g, "_");
+    return `${DB_URL}/families/${FAMILY_KEY}/images/${safeId}.json`;
+  }
 
   /* ── Local cache ───────────────────────────────────── */
   function readLocal() {
@@ -165,6 +170,43 @@
       origDel(k);
       schedulePush();
     };
+
+    // Patch ImageDB to sync large assets
+    if (window.ImageDB) {
+      const origImgSet = window.ImageDB.set.bind(window.ImageDB);
+      window.ImageDB.set = async function (id, data) {
+        await origImgSet(id, data);
+        pushImage(id, data);
+      };
+      const origImgGet = window.ImageDB.get.bind(window.ImageDB);
+      window.ImageDB.get = async function (id) {
+        let local = await origImgGet(id);
+        if (!local) {
+          local = await pullImage(id);
+          if (local) await origImgSet(id, local);
+        }
+        return local;
+      };
+    }
+  }
+
+  async function pushImage(id, data) {
+    try {
+      await fetch(imageApiUrl(id), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data, updatedAt: Date.now(), clientId: CLIENT_ID })
+      });
+    } catch (e) { console.error("🔴 Image push failed:", e); }
+  }
+
+  async function pullImage(id) {
+    try {
+      const res = await fetch(imageApiUrl(id));
+      if (!res.ok) return null;
+      const remote = await res.json();
+      return remote ? remote.data : null;
+    } catch (e) { return null; }
   }
 
   /* ── Bootstrap: runs automatically on page load ────── */
