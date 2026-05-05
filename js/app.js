@@ -13,7 +13,14 @@
     const cur = location.hash || "#/dashboard";
     document.querySelectorAll(".nav-link").forEach((a) => {
       const target = a.getAttribute("data-link");
-      a.classList.toggle("active", cur.startsWith(target));
+      let active = cur.startsWith(target);
+      
+      // If we are in a week or day content, highlight the 'Home' (Dashboard) tab
+      if (target === "#/dashboard" && (cur.startsWith("#/week") || cur.startsWith("#/day"))) {
+        active = true;
+      }
+      
+      a.classList.toggle("active", active);
     });
     const streakEl = document.getElementById("streakBadge");
     const s = State.getStreak().count;
