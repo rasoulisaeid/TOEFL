@@ -35,10 +35,6 @@ window.Views.dashboard = function (mount) {
     ]),
     el("div", { class: "hero-stats" }, [
       el("div", { class: "hero-mini-stat" }, [
-        el("div", { class: "label" }, "Streak"),
-        el("div", { class: "value" }, `🔥 ${streak}`),
-      ]),
-      el("div", { class: "hero-mini-stat" }, [
         el("div", { class: "label" }, "Weeks"),
         el("div", { class: "value" }, `${weeksDone}/25`),
         el("div", { class: "hero-progress-bar" }, el("i", { style: `width:${(weeksDone / 25) * 100}%` })),
