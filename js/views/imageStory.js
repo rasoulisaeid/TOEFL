@@ -150,7 +150,6 @@ window.Views.imageStory = function (mount, params) {
       if (f) handleFile(f);
     });
     zone.addEventListener("paste", onPaste);
-    document.addEventListener("paste", onPaste);
 
     function onPaste(e) {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
