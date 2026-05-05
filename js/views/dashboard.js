@@ -38,10 +38,10 @@ window.Views.dashboard = function (mount) {
   mount.appendChild(hero);
 
   const stats = el("div", { class: "stat-row" }, [
-    statCard("Streak", `🔥 ${streak}`, "Days in a row", "warm"),
-    statCard("Weeks complete", `${weeksDone}/25`, "B1 → B2 → TOEFL"),
-    statCard("Overall", `${pct(avgProgress)}%`, "Across all weeks", "cool"),
-    statCard("Vocabulary", `${cardsLearned}`, "Active in Leitner"),
+    statCard("Streak", `🔥 ${streak}`, ""),
+    statCard("Weeks complete", `${weeksDone}/25`, ""),
+    statCard("Overall", `${pct(avgProgress)}%`, ""),
+    statCard("Vocabulary", `${cardsLearned}`, ""),
   ]);
   mount.appendChild(stats);
 
