@@ -322,14 +322,10 @@ function buildDictationCard(t) {
     }
   }
 
-  // Header
-  card.appendChild(el("div", { class: "row" }, [
+  card.appendChild(el("div", { class: "row", style: "margin-bottom:14px" }, [
     el("span", { class: "material-symbols-rounded", style: "font-size:22px;color:var(--blue)" }, "hearing"),
     el("div", { style: "font-weight:700;font-size:15px" }, "Fill in the blanks"),
-    el("span", { class: "spacer" }),
-    el("span", { class: "chip muted" }, "~50% hidden"),
   ]));
-  card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:4px;margin-bottom:14px" }, "Listen and pick the correct word from each pair above the blank."));
 
   const body = el("div", { class: "dictation-body" });
   card.appendChild(body);
