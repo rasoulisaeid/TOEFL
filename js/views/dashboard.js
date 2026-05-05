@@ -33,6 +33,7 @@ window.Views.dashboard = function (mount) {
         }, "📚  Review words"),
       ]),
     ]),
+    el("div", { class: "hero-stats" }, [
       el("div", { class: "hero-mini-stat" }, [
         el("div", { class: "label" }, "Streak"),
         el("div", { class: "value" }, `🔥 ${streak}`),
