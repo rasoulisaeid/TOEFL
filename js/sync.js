@@ -187,7 +187,18 @@
         }
         return local;
       };
+      const origImgDel = window.ImageDB.delete.bind(window.ImageDB);
+      window.ImageDB.delete = async function (id) {
+        await origImgDel(id);
+        deleteImage(id);
+      };
     }
+  }
+
+  async function deleteImage(id) {
+    try {
+      await fetch(imageApiUrl(id), { method: "DELETE" });
+    } catch (e) { console.error("🔴 Image delete failed:", e); }
   }
 
   async function pushImage(id, data) {
