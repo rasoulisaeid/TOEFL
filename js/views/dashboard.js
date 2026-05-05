@@ -33,7 +33,10 @@ window.Views.dashboard = function (mount) {
         }, "📚  Review words"),
       ]),
     ]),
-    el("div", { class: "hero-stats" }, [
+      el("div", { class: "hero-mini-stat" }, [
+        el("div", { class: "label" }, "Streak"),
+        el("div", { class: "value" }, `🔥 ${streak}`),
+      ]),
       el("div", { class: "hero-mini-stat" }, [
         el("div", { class: "label" }, "Weeks"),
         el("div", { class: "value" }, `${weeksDone}/25`),
@@ -56,14 +59,6 @@ window.Views.dashboard = function (mount) {
     ]),
   ]);
   mount.appendChild(hero);
-
-  const stats = el("div", { class: "stat-row" }, [
-    statCard("Streak", `🔥 ${streak}`, ""),
-    statCard("Weeks complete", `${weeksDone}/25`, ""),
-    statCard("Overall", `${pct(avgProgress)}%`, ""),
-    statCard("Vocabulary", `${cardsLearned}`, ""),
-  ]);
-  mount.appendChild(stats);
 
   mount.appendChild(el("div", { class: "section-title" }, "All weeks"));
 

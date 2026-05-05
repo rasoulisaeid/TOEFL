@@ -1490,9 +1490,9 @@ main {
 .hero-content { position: relative; z-index: 1; flex: 1; }
 .hero-stats {
   position: relative; z-index: 1;
-  display: flex; align-items: center; gap: 28px;
+  display: flex; align-items: center; gap: 22px;
   background: rgba(0,0,0,0.12);
-  padding: 18px 24px;
+  padding: 16px 20px;
   border-radius: 20px;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -1500,7 +1500,7 @@ main {
 }
 .hero-mini-stat {
   display: flex; flex-direction: column; gap: 2px;
-  min-width: 85px; align-items: center; text-align: center;
+  min-width: 75px; align-items: center; text-align: center;
 }
 .hero-mini-stat .label { font-size: 10px; text-transform: uppercase; opacity: 0.8; font-weight: 800; letter-spacing: 0.08em; }
 .hero-mini-stat .value { font-size: 20px; font-weight: 900; }
