@@ -1,244 +1,234 @@
-/* Firebase Cloud Sync
- * Stores the entire pathway:v1 blob under /families/{syncKey}/data
- * and keeps a real-time listener so both users see live updates.
+/* Firebase Cloud Sync — REST API + SSE (Server-Sent Events)
  *
- * Architecture:
- *   - localStorage is the offline-first source of truth
- *   - Firebase mirrors that blob in the cloud
- *   - On write: localStorage → Firebase (debounced 1.5s)
- *   - On init: Firebase → localStorage (if cloud is newer)
- *   - Real-time listener: cloud changes update localStorage + re-route
+ * Writes:  HTTPS PUT  → instant push on every Storage change
+ * Reads:   EventSource SSE → Firebase pushes changes in real-time (no polling)
+ *
+ * Works on GitHub Pages, file://, anywhere — no WebSocket required.
  */
 
 (function () {
-  const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyBEC9fzNniD1eGS2fFAs5Grljjo4vZtSlM",
-    authDomain: "toefl-c71e5.firebaseapp.com",
-    databaseURL: "https://toefl-c71e5-default-rtdb.firebaseio.com",
-    projectId: "toefl-c71e5",
-    storageBucket: "toefl-c71e5.firebasestorage.app",
-    messagingSenderId: "971631281942",
-    appId: "1:971631281942:web:71c9003df2d61dd3d3b237",
-  };
+  const DB_URL       = "https://toefl-c71e5-default-rtdb.firebaseio.com";
+  const STORAGE_KEY  = "pathway:v1";
+  const SYNC_KEY_LOC = "pathway:syncKey";
 
-  const STORAGE_KEY = "pathway:v1";
-  const SYNC_KEY_STORAGE = "pathway:syncKey";
-  let db = null;
-  let syncKey = null;
-  let ignoreNextRemoteUpdate = false;
-  let pushTimer = null;
+  let syncKey    = null;
+  let pushTimer  = null;
+  let lastPushed = null;   // avoid redundant pushes
+  let evtSource  = null;   // SSE connection
 
-  /* ── helpers ─────────────────────────────────────────── */
-  function dbRef() {
-    if (!db || !syncKey) return null;
-    return firebase.database().ref("families/" + syncKey + "/data");
+  /* ── REST URL ──────────────────────────────────────── */
+  function url() {
+    return `${DB_URL}/families/${syncKey}/data.json`;
   }
 
+  /* ── Local helpers ─────────────────────────────────── */
   function readLocal() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
     catch (e) { return {}; }
   }
-
   function writeLocal(obj) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
-    catch (e) { console.warn("Sync writeLocal error", e); }
+    catch (e) { console.warn("writeLocal error", e); }
   }
 
-  /* Push local → Firebase, debounced so rapid writes don't spam */
+  /* ── Status badge ──────────────────────────────────── */
+  function setStatus(s) {
+    const el = document.getElementById("syncStatus");
+    if (!el) return;
+    const map = {
+      synced      : ["☁️",  "Synced",      "synced"],
+      syncing     : ["⟳",   "Syncing…",    "syncing"],
+      error       : ["⚠️",  "Sync error",  "error"],
+      disconnected: ["🔗",  "Not syncing", "disconnected"],
+    };
+    const [icon, label, cls] = map[s] || ["🔗", s, "disconnected"];
+    el.textContent = `${icon} ${label}`;
+    el.className   = `sync-badge ${cls}`;
+    el.title       = label;
+  }
+
+  /* ── Push: local → cloud ────────────────────────────
+     Debounced 1 s so rapid consecutive writes only hit
+     Firebase once.                                      */
   function schedulePush() {
-    if (!dbRef()) return;
+    if (!syncKey) return;
     clearTimeout(pushTimer);
-    pushTimer = setTimeout(() => {
-      const data = readLocal();
-      ignoreNextRemoteUpdate = true;
-
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Firebase timeout — check rules or connection")), 10000)
-      );
-
-      Promise.race([
-        dbRef().set({ payload: data, updatedAt: Date.now() }),
-        timeout,
-      ])
-        .then(() => setSyncStatus("synced"))
-        .catch((err) => {
-          setSyncStatus("error");
-          console.error("🔴 Firebase push failed:", err.message);
+    pushTimer = setTimeout(async () => {
+      const data   = readLocal();
+      const asJson = JSON.stringify(data);
+      if (asJson === lastPushed) return;   // nothing new
+      setStatus("syncing");
+      try {
+        const res = await fetch(url(), {
+          method : "PUT",
+          headers: { "Content-Type": "application/json" },
+          body   : JSON.stringify({ payload: data, updatedAt: Date.now() }),
         });
-    }, 1500);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        lastPushed = asJson;
+        setStatus("synced");
+      } catch (e) {
+        setStatus("error");
+        console.error("🔴 Sync push failed:", e.message);
+      }
+    }, 1000);
   }
 
-  /* Pull Firebase → local, merge (cloud wins on conflict) */
-  async function pullFromCloud() {
-    const ref = dbRef();
-    if (!ref) return;
-    setSyncStatus("syncing");
+  /* ── Initial pull: cloud → local ───────────────────── */
+  async function pullOnce() {
+    setStatus("syncing");
     try {
-      const snap = await ref.get();
-      if (snap.exists()) {
-        const cloudData = snap.val();
-        if (cloudData && cloudData.payload) {
-          writeLocal(cloudData.payload);
+      const res = await fetch(url());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const remote = await res.json();
+      if (remote && remote.payload) {
+        const remoteJson = JSON.stringify(remote.payload);
+        const localJson  = JSON.stringify(readLocal());
+        if (remoteJson !== localJson) {
+          writeLocal(remote.payload);
+          lastPushed = remoteJson;
+        } else {
+          lastPushed = localJson;
         }
       }
-      setSyncStatus("synced");
+      setStatus("synced");
     } catch (e) {
-      setSyncStatus("error");
-      console.error("🔴 Firebase pull failed:", e.code || e.message, "\nFix: update your Firebase Realtime Database rules to allow read/write.");
+      setStatus("error");
+      console.error("🔴 Sync pull failed:", e.message);
     }
   }
 
-  /* Subscribe to real-time changes */
-  function subscribeRealtime() {
-    const ref = dbRef();
-    if (!ref) return;
-    ref.on("value", (snap) => {
-      if (ignoreNextRemoteUpdate) {
-        ignoreNextRemoteUpdate = false;
-        return;
+  /* ── Real-time listener via SSE ─────────────────────
+     Firebase Realtime Database supports EventSource —
+     the server pushes a 'put' event whenever data changes.
+     No polling, no WebSocket — purely HTTP streaming.   */
+  function subscribeSSE() {
+    if (evtSource) { evtSource.close(); evtSource = null; }
+
+    evtSource = new EventSource(url());
+
+    evtSource.addEventListener("put", (e) => {
+      try {
+        const { data } = JSON.parse(e.data);   // { path, data }
+        if (!data) return;                      // null = deleted
+        const incoming = data.payload || data;  // handle root vs nested
+        if (!incoming || typeof incoming !== "object") return;
+
+        const incomingJson = JSON.stringify(incoming);
+        if (incomingJson === lastPushed) return;  // our own write reflected back
+
+        writeLocal(incoming);
+        lastPushed = incomingJson;
+        setStatus("synced");
+        // Silently refresh the current view so partner's progress appears
+        window.dispatchEvent(new Event("hashchange"));
+      } catch (err) {
+        console.warn("SSE parse error", err);
       }
-      if (snap.exists()) {
-        const cloudData = snap.val();
-        if (cloudData && cloudData.payload) {
-          writeLocal(cloudData.payload);
-          setSyncStatus("synced");
-          // Re-render the current view silently
-          const event = new Event("hashchange");
-          window.dispatchEvent(event);
-        }
-      }
+    });
+
+    evtSource.onopen = () => setStatus("synced");
+
+    evtSource.onerror = () => {
+      setStatus("error");
+      // SSE auto-reconnects on its own — no manual retry needed
+    };
+  }
+
+  /* ── Modal ─────────────────────────────────────────── */
+  function openModal() {
+    UI.modal((m, close) => {
+      const cur = syncKey || "";
+      const inp = UI.el("input", {
+        value      : cur,
+        placeholder: "e.g. family-toefl-2025",
+        style      : "width:100%;margin-top:8px",
+      });
+      m.appendChild(UI.el("h2", null, "☁️ Cloud Sync"));
+      m.appendChild(UI.el("div", { class: "muted", style: "margin:8px 0 12px" },
+        "Enter the same sync key on both devices. " +
+        "Changes sync in real-time the moment either of you does something."
+      ));
+      m.appendChild(UI.el("label", null, [
+        UI.el("div", { class: "muted", style: "font-size:12px;margin-bottom:4px" }, "Sync Key"),
+        inp,
+      ]));
+      m.appendChild(UI.el("div", { class: "muted", style: "font-size:11px;margin-top:6px" },
+        "Use a private phrase only you two know."
+      ));
+      m.appendChild(UI.el("div", { class: "modal-actions", style: "margin-top:18px" }, [
+        UI.el("button", { class: "btn", text: "Cancel", onclick: close }),
+        cur ? UI.el("button", {
+          class: "btn ghost danger", text: "Disconnect",
+          onclick: () => { window.Sync.disconnect(); close(); },
+        }) : null,
+        UI.el("button", {
+          class: "btn primary",
+          text : syncKey ? "Update Key" : "Start Syncing",
+          onclick: async () => {
+            const ok = await window.Sync.connect(inp.value);
+            if (ok) close();
+          },
+        }),
+      ]));
     });
   }
 
-  /* ── UI status indicator ─────────────────────────────── */
-  function setSyncStatus(status) {
-    const el = document.getElementById("syncStatus");
-    if (!el) return;
-    const icons = { synced: "☁️", syncing: "⟳", error: "⚠️", offline: "📴", disconnected: "🔗" };
-    const labels = { synced: "Synced", syncing: "Syncing…", error: "Sync error", offline: "Offline", disconnected: "Not syncing" };
-    el.title = labels[status] || status;
-    el.textContent = (icons[status] || "🔗") + " " + (labels[status] || "");
-    el.className = "sync-badge " + status;
-  }
-
-  /* ── Public API ──────────────────────────────────────── */
+  /* ── Public API ────────────────────────────────────── */
   window.Sync = {
     getSyncKey() { return syncKey; },
 
-    /* Called on each Storage.set() write */
-    onWrite() { schedulePush(); setSyncStatus("syncing"); },
+    onWrite() { schedulePush(); },
 
-    /* Connect using a shared family key */
     async connect(key) {
       if (!key || key.trim().length < 4) {
         UI.toast("Sync key must be at least 4 characters.");
         return false;
       }
+      // disconnect old SSE if key is changing
+      if (evtSource) { evtSource.close(); evtSource = null; }
+
       syncKey = key.trim().toLowerCase().replace(/[^a-z0-9\-_]/g, "-");
-      localStorage.setItem(SYNC_KEY_STORAGE, syncKey);
-      setSyncStatus("syncing");
-      await pullFromCloud();
-      subscribeRealtime();
-      UI.toast("☁️ Syncing with key: " + syncKey);
+      localStorage.setItem(SYNC_KEY_LOC, syncKey);
+
+      await pullOnce();      // get latest state first
+      subscribeSSE();        // then subscribe to live updates
+      UI.toast("☁️ Syncing as: " + syncKey);
       return true;
     },
 
     disconnect() {
-      if (dbRef()) dbRef().off();
+      if (evtSource) { evtSource.close(); evtSource = null; }
+      clearTimeout(pushTimer);
       syncKey = null;
-      localStorage.removeItem(SYNC_KEY_STORAGE);
-      setSyncStatus("disconnected");
+      localStorage.removeItem(SYNC_KEY_LOC);
+      setStatus("disconnected");
       UI.toast("Sync disconnected.");
     },
 
-    openModal() {
-      UI.modal((m, close) => {
-        const cur = syncKey || "";
-        const inp = UI.el("input", {
-          value: cur,
-          placeholder: "e.g. family-toefl-2025",
-          style: "width:100%;margin-top:8px",
-        });
-        m.appendChild(UI.el("h2", null, "☁️ Cloud Sync"));
-        m.appendChild(UI.el("div", { class: "muted", style: "margin:8px 0 12px" },
-          "Enter the same sync key on both devices (you and your wife). " +
-          "Your progress will merge automatically in real time."
-        ));
-        m.appendChild(UI.el("label", null, [
-          UI.el("div", { class: "muted", style: "font-size:12px;margin-bottom:4px" }, "Sync Key"),
-          inp,
-        ]));
-        m.appendChild(UI.el("div", { class: "muted", style: "font-size:11px;margin-top:6px" },
-          "Use a private phrase only you two know (no spaces needed)."
-        ));
-        m.appendChild(UI.el("div", { class: "modal-actions", style: "margin-top:18px" }, [
-          UI.el("button", { class: "btn", text: "Cancel", onclick: close }),
-          cur ? UI.el("button", {
-            class: "btn ghost danger",
-            text: "Disconnect",
-            onclick: () => { window.Sync.disconnect(); close(); },
-          }) : null,
-          UI.el("button", {
-            class: "btn primary",
-            text: syncKey ? "Update Key" : "Start Syncing",
-            onclick: async () => {
-              const ok = await window.Sync.connect(inp.value);
-              if (ok) close();
-            },
-          }),
-        ]));
-      });
-    },
+    openModal,
 
-    /* Auto-connect on page load if key is saved */
     async autoConnect() {
-      const savedKey = localStorage.getItem(SYNC_KEY_STORAGE);
-      if (!savedKey) { setSyncStatus("disconnected"); return; }
-      await this.connect(savedKey);
+      const saved = localStorage.getItem(SYNC_KEY_LOC);
+      if (!saved) { setStatus("disconnected"); return; }
+      syncKey = saved;
+      await pullOnce();
+      subscribeSSE();
     },
   };
 
-  /* ── Patch Storage.set to trigger sync ──────────────── */
-  function patchStorage() {
-    const origSet = window.Storage.set.bind(window.Storage);
-    window.Storage.set = function (k, v) {
-      origSet(k, v);
-      window.Sync.onWrite();
-    };
-    const origDelete = window.Storage.delete.bind(window.Storage);
-    window.Storage.delete = function (k) {
-      origDelete(k);
-      window.Sync.onWrite();
-    };
-  }
+  /* ── Patch Storage.set to trigger push ─────────────── */
+  const origSet = window.Storage.set.bind(window.Storage);
+  window.Storage.set = function (k, v) {
+    origSet(k, v);
+    window.Sync.onWrite();
+  };
+  const origDel = window.Storage.delete.bind(window.Storage);
+  window.Storage.delete = function (k) {
+    origDel(k);
+    window.Sync.onWrite();
+  };
 
-  /* ── Bootstrap ───────────────────────────────────────── */
-  function init() {
-    // Init Firebase
-    if (!firebase.apps || !firebase.apps.length) {
-      firebase.initializeApp(FIREBASE_CONFIG);
-    }
-    db = firebase.database();
-
-    patchStorage();
-
-    // Firebase connection state
-    firebase.database().ref(".info/connected").on("value", (snap) => {
-      if (!syncKey) return;
-      setSyncStatus(snap.val() ? "synced" : "offline");
-    });
-
-    // Auto-connect if previously set up
-    window.Sync.autoConnect();
-  }
-
-  // Wait for Firebase SDK to be ready
-  if (typeof firebase !== "undefined") {
-    init();
-  } else {
-    window.addEventListener("load", () => {
-      if (typeof firebase !== "undefined") init();
-      else console.warn("Firebase SDK not loaded.");
-    });
-  }
+  /* ── Bootstrap ─────────────────────────────────────── */
+  window.Sync.autoConnect();
 })();
