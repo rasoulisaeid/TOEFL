@@ -11,6 +11,7 @@
   const DB_URL      = "https://toefl-c71e5-default-rtdb.firebaseio.com";
   const FAMILY_KEY  = "rasoulisaeid";
   const STORAGE_KEY = "pathway:v1";
+  const CLIENT_ID   = Math.random().toString(36).slice(2); // Unique ID for this session
 
   let evtSource  = null;
   let pushTimer  = null;
@@ -55,18 +56,23 @@
       const data   = readLocal();
       const asJson = JSON.stringify(data);
       if (asJson === lastPushed) return;
+      
       lastPushed = asJson;
       setStatus("saving");
       try {
         const res = await fetch(apiUrl(), {
           method : "PUT",
           headers: { "Content-Type": "application/json" },
-          body   : JSON.stringify({ payload: data, updatedAt: Date.now() }),
+          body   : JSON.stringify({ 
+            payload: data, 
+            updatedAt: Date.now(),
+            clientId: CLIENT_ID // Tag this update as ours
+          }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         setStatus("synced");
       } catch (e) {
-        lastPushed = null; // reset on error so we can retry
+        lastPushed = null; 
         setStatus("error");
         console.error("🔴 Save failed:", e.message);
       }
@@ -98,15 +104,27 @@
 
     evtSource.addEventListener("put", (e) => {
       try {
-        const { data } = JSON.parse(e.data);
-        if (!data) return;
-        const incoming = data.payload || data;
+        const payload = JSON.parse(e.data);
+        if (!payload || !payload.data) return;
+        
+        const remoteData = payload.data;
+        
+        // CRITICAL: Ignore if the update came from US
+        if (remoteData.clientId === CLIENT_ID) {
+          return;
+        }
+
+        const incoming = remoteData.payload || remoteData;
         if (!incoming || typeof incoming !== "object") return;
+        
         const incomingJson = JSON.stringify(incoming);
-        if (incomingJson === lastPushed) return;  // own write echoed back
+        if (incomingJson === lastPushed) return;
+
         writeLocal(incoming);
         lastPushed = incomingJson;
         setStatus("synced");
+        
+        // Only reload if the data actually changed from someone else
         window.dispatchEvent(new Event("hashchange"));
       } catch (err) {
         console.warn("SSE parse error", err);
@@ -114,11 +132,14 @@
     });
 
     evtSource.addEventListener("patch", (e) => {
+      // Patch is less common in this root-PUT setup but same logic applies
       try {
-        const { data } = JSON.parse(e.data);
-        if (!data) return;
+        const payload = JSON.parse(e.data);
+        if (!payload || !payload.data) return;
+        if (payload.data.clientId === CLIENT_ID) return;
+
         const local = readLocal();
-        Object.assign(local, data.payload || data);
+        Object.assign(local, payload.data.payload || payload.data);
         writeLocal(local);
         lastPushed = JSON.stringify(local);
         setStatus("synced");
