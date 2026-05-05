@@ -243,10 +243,11 @@ main {
 @media (max-width: 900px) {
   .app-shell { grid-template-columns: 1fr; }
   .sidebar {
-    position: sticky; top: 0; height: auto;
+    position: relative; height: auto;
     flex-direction: row; align-items: center; gap: 12px;
     padding: 10px 14px;
     border-right: none; border-bottom: 2px solid var(--border);
+    z-index: 50;
   }
   .sidebar .topnav { display: none; }
   .sidebar-foot { margin-top: 0; flex-direction: row; margin-left: auto; gap: 8px; }
@@ -453,16 +454,16 @@ main {
 
 .weeks-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 @media (max-width: 1100px) { .weeks-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 980px) {
-  .weeks-grid { grid-template-columns: repeat(3, 1fr); }
+  .weeks-grid { grid-template-columns: repeat(4, 1fr); }
   .stat-row { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {
-  .weeks-grid { grid-template-columns: repeat(2, 1fr); }
+  .weeks-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 .week-card {
@@ -528,7 +529,7 @@ main {
 .week-card .wtheme {
   font-weight: 900; font-size: 16px; line-height: 1.25; color: var(--text);
 }
-.week-card .wsub { color: var(--muted); font-size: 12.5px; font-weight: 600; }
+.week-card .wsub { display: none; }
 .week-card .wbar {
   margin-top: auto;
   height: 8px; border-radius: 999px; background: var(--card-2);
@@ -561,10 +562,12 @@ main {
    WEEK VIEW (days)
    ============================================================ */
 .days-grid {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
 }
 @media (max-width: 1100px) { .days-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 700px) { .days-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px) { .days-grid { grid-template-columns: repeat(4, 1fr); } }
 
 .day-card {
   padding: 16px;
@@ -584,7 +587,7 @@ main {
   color: var(--muted);
 }
 .day-card .dtopic { font-weight: 800; font-size: 16px; line-height: 1.2; color: var(--text); }
-.day-card .dsub { color: var(--muted); font-size: 12px; line-height: 1.4; font-weight: 600; }
+.day-card .dsub { display: none; }
 .day-card .dprog {
   height: 8px; border-radius: 999px; background: var(--card-2);
   overflow: hidden; margin-top: auto; border: 1px solid var(--border);
@@ -886,7 +889,7 @@ main {
 
 .scene-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-rows: repeat(2, 1fr);
   gap: 8px;
   margin-top: 12px;
@@ -1313,7 +1316,9 @@ main {
    LEITNER
    ============================================================ */
 .leitner-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
 }
 @media (max-width: 800px) { .leitner-grid { grid-template-columns: repeat(2, 1fr); } }
 .box-card {
