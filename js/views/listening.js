@@ -223,7 +223,7 @@ function buildTranscriptCard(t) {
     el("button", { class: "btn sm", onclick: () => transcript.classList.toggle("hidden") }, "Show / hide"),
   ]);
   card.appendChild(row);
-  const transcript = el("div", { class: "transcript hidden" }, t.text);
+  const transcript = el("div", { class: "transcript hidden" }, UI.clickableText(t.text, WordLookup.lookup));
   card.appendChild(transcript);
   card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:6px" }, "Tip: try listening twice without the transcript first."));
   return card;

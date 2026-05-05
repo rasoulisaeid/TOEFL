@@ -80,7 +80,27 @@
 
   function pct(x) { return Math.round((x || 0) * 100); }
 
-  window.UI = { el, clear, modal, toast, confirmDialog, pct };
+  function clickableText(text, onWordClick) {
+    const container = el("div", { class: "clickable-container" });
+    const tokens = text.split(/(\s+|[.,!?;:()"])/);
+    tokens.forEach(t => {
+      if (t.trim() && /^[a-zA-Z'-]+$/.test(t)) {
+        container.appendChild(el("span", { 
+          class: "clickable-word", 
+          text: t,
+          onclick: (e) => {
+            e.stopPropagation();
+            onWordClick && onWordClick(t.replace(/[^a-zA-Z'-]/g, ""));
+          }
+        }));
+      } else {
+        container.appendChild(document.createTextNode(t));
+      }
+    });
+    return container;
+  }
+
+  window.UI = { el, clear, modal, toast, confirmDialog, pct, clickableText };
 
   /* Shared vocabulary components */
   window.buildVocabCard = function (vocabList, w, d, title) {

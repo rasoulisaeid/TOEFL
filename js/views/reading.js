@@ -79,7 +79,7 @@ function buildReading(w, d, rd) {
 
   // Passage
   main.appendChild(el("div", { class: "card" }, [
-    el("div", { class: "passage" }, rd.paragraphs.map((p) => el("p", null, p))),
+    el("div", { class: "passage" }, rd.paragraphs.map((p) => UI.clickableText(p, WordLookup.lookup))),
   ]));
 
   // MCQ
