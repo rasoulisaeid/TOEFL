@@ -26,6 +26,8 @@
   function build(opts) {
     const wrap = UI.el("div", { class: "col" });
     const state = Storage.get(opts.storageKey, { current: 0, answers: [], completed: false });
+    if (!state.answers) state.answers = [];
+    if (!state.tries) state.tries = {};
     const total = opts.questions.length;
 
     const card = UI.el("div", { class: "mcq-card" });
