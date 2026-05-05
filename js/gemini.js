@@ -92,6 +92,37 @@ window.Gemini = (function() {
       ].filter(Boolean).join("\n");
       return callJSON(prompt, { temperature: 0.25 });
     },
+
+    /**
+     * Generate distractors for a list of words (one batch API call).
+     * Returns { word: distractor } mapping.
+     * @param {string[]} words - array of words to generate distractors for
+     * @returns {Promise<Object>}
+     */
+    async generateDistractors(words) {
+      const unique = [...new Set(words.map(w => w.toLowerCase()))];
+      const prompt = [
+        `You are helping create a listening comprehension exercise for an English learner.`,
+        `For each word below, provide ONE plausible but WRONG alternative word that:`,
+        `- Is the same part of speech`,
+        `- Is similar in meaning or sound (to make it tricky)`,
+        `- Would almost fit the sentence but is not quite right`,
+        ``,
+        `Words: ${unique.join(", ")}`,
+        ``,
+        `Return a JSON object where each key is the original word (lowercase) and the value is the distractor word (lowercase).`,
+        `Example: {"like": "enjoy", "drank": "sipped", "morning": "evening"}`,
+      ].join("\n");
+      try {
+        const result = await callJSON(prompt, { temperature: 0.5 });
+        // Ensure we have a valid mapping
+        if (result && typeof result === "object" && !result._raw) return result;
+        return {};
+      } catch (e) {
+        console.error("🔴 Distractor generation failed:", e.message);
+        return {};
+      }
+    },
   };
 })();
 

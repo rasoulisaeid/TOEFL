@@ -79,6 +79,10 @@ function buildListening(w, d, t) {
   main.appendChild(buildAudioCard(t));
   main.appendChild(buildTranscriptCard(t));
 
+  // Dictation Challenge
+  main.appendChild(el("div", { class: "section-title" }, "Dictation challenge"));
+  main.appendChild(buildDictationCard(t));
+
   // MCQ
   main.appendChild(el("div", { class: "section-title" }, "Quick comprehension check"));
   main.appendChild(MCQ.build({
@@ -251,6 +255,204 @@ function openSettings() {
       }}),
     ]));
   });
+}
+
+/* ============================================================
+   DICTATION CHALLENGE — fill-in-the-blank listening exercise
+   ============================================================ */
+const SKIP_WORDS = new Set([
+  "a","an","the","i","is","am","are","was","were","be","been","being",
+  "in","on","at","to","of","for","by","it","its","and","or","but","not",
+  "my","me","we","us","he","she","him","her","his","they","them","so","do",
+  "if","as","no","up","out","all","had","has","have","did","that","this",
+  "with","from","will","can","just","very","too","also","than","then",
+]);
+
+function tokenizeForDictation(text) {
+  // Split into tokens preserving punctuation and whitespace
+  const raw = text.split(/(\s+|[.,!?;:()""''\-—])/);
+  return raw.map((token, idx) => {
+    const clean = token.replace(/[^a-zA-Z'-]/g, "").toLowerCase();
+    const isWord = /^[a-zA-Z'-]{4,}$/.test(token.trim());
+    const isSkipped = SKIP_WORDS.has(clean);
+    return { raw: token, clean, idx, isWord: isWord && !isSkipped };
+  });
+}
+
+function selectBlanks(tokens, ratio = 0.5) {
+  const eligible = tokens.filter(t => t.isWord);
+  const count = Math.round(eligible.length * ratio);
+  // Deterministic shuffle using simple hash
+  const shuffled = eligible.slice().sort((a, b) => {
+    const ha = (a.idx * 2654435761) >>> 0;
+    const hb = (b.idx * 2654435761) >>> 0;
+    return ha - hb;
+  });
+  const selected = new Set(shuffled.slice(0, count).map(t => t.idx));
+  return selected;
+}
+
+function buildDictationCard(t) {
+  const { el } = UI;
+  const card = el("div", { class: "card dictation-card" });
+  const storageKey = `dictation:${t.id}`;
+  const cacheKey = `dictation:distractors:${t.id}`;
+
+  // Header
+  card.appendChild(el("div", { class: "row" }, [
+    el("span", { class: "material-symbols-rounded", style: "font-size:22px;color:var(--blue)" }, "hearing"),
+    el("div", { style: "font-weight:700;font-size:15px" }, "Fill in the blanks"),
+    el("span", { class: "spacer" }),
+    el("span", { class: "chip muted" }, "~50% hidden"),
+  ]));
+  card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:4px;margin-bottom:14px" }, "Listen to the audio and select the correct word for each blank."));
+
+  const body = el("div", { class: "dictation-body" });
+  card.appendChild(body);
+
+  // Tokenize and select blanks
+  const tokens = tokenizeForDictation(t.text);
+  const blankIndices = selectBlanks(tokens);
+  const blankedWords = tokens.filter(tk => blankIndices.has(tk.idx)).map(tk => tk.clean);
+
+  // Load saved state
+  let state = Storage.get(storageKey, { answers: {}, completed: false });
+
+  // Try to load cached distractors
+  const cached = Storage.get(cacheKey, null);
+
+  if (cached) {
+    renderDictation(body, tokens, blankIndices, cached, state, storageKey, card);
+  } else {
+    // Show loading state
+    const loading = el("div", { class: "thinking" }, "Generating exercise with Gemini...");
+    body.appendChild(loading);
+
+    Gemini.generateDistractors(blankedWords).then(distractors => {
+      Storage.set(cacheKey, distractors);
+      UI.clear(body);
+      renderDictation(body, tokens, blankIndices, distractors, state, storageKey, card);
+    }).catch(err => {
+      UI.clear(body);
+      body.appendChild(el("div", { class: "muted", style: "text-align:center;padding:20px" }, "Failed to generate exercise. " + (err.message || "")));
+    });
+  }
+
+  return card;
+}
+
+function renderDictation(body, tokens, blankIndices, distractors, state, storageKey, card) {
+  const { el } = UI;
+  UI.clear(body);
+
+  const totalBlanks = blankIndices.size;
+  let correctCount = 0;
+
+  // Score bar
+  const scoreLabel = el("span", { class: "muted", style: "font-size:13px" });
+  const scoreBar = el("div", { class: "dictation-score-bar" });
+  const scoreFill = el("div");
+  scoreBar.appendChild(scoreFill);
+
+  function updateScore() {
+    correctCount = Object.values(state.answers).filter(a => a === true).length;
+    scoreLabel.textContent = `${correctCount} / ${totalBlanks} correct`;
+    const pct = totalBlanks > 0 ? Math.round((correctCount / totalBlanks) * 100) : 0;
+    scoreFill.style.width = pct + "%";
+    if (correctCount === totalBlanks && !state.completed) {
+      state.completed = true;
+      Storage.set(storageKey, state);
+      UI.toast("🎉 Dictation complete!");
+    }
+  }
+
+  body.appendChild(el("div", { class: "row", style: "margin-bottom:12px" }, [scoreLabel, el("span", { class: "spacer" }), scoreBar]));
+
+  // Reset button
+  const resetBtn = el("button", { class: "btn sm ghost", style: "margin-bottom:10px", onclick: () => {
+    state.answers = {};
+    state.completed = false;
+    Storage.set(storageKey, state);
+    renderDictation(body, tokens, blankIndices, distractors, state, storageKey, card);
+  }}, "Reset");
+  body.appendChild(el("div", { class: "row", style: "margin-bottom:10px" }, [el("span", { class: "spacer" }), resetBtn]));
+
+  // Build the passage
+  const passage = el("div", { class: "dictation-passage" });
+
+  tokens.forEach(tk => {
+    if (blankIndices.has(tk.idx)) {
+      // This is a blank
+      const correctWord = tk.raw.trim();
+      const correctLower = tk.clean;
+      const distractor = (distractors[correctLower] || fallbackDistractor(correctLower));
+
+      const answered = state.answers[tk.idx];
+      const blankEl = el("span", { class: "dict-blank" + (answered === true ? " correct" : answered === false ? " wrong" : "") });
+
+      if (answered === true) {
+        // Already answered correctly
+        blankEl.textContent = correctWord;
+      } else if (answered === false) {
+        // Already answered wrong — show correct answer with strikethrough on wrong
+        blankEl.textContent = correctWord;
+        blankEl.classList.add("revealed");
+      } else {
+        // Not yet answered — show two options
+        const options = [
+          { text: correctWord, isCorrect: true },
+          { text: distractor, isCorrect: false },
+        ];
+        // Shuffle deterministically
+        if ((tk.idx * 7) % 3 !== 0) options.reverse();
+
+        options.forEach(opt => {
+          const btn = el("button", {
+            class: "dict-option",
+            text: opt.text,
+            onclick: () => {
+              state.answers[tk.idx] = opt.isCorrect;
+              Storage.set(storageKey, state);
+              // Replace blank with result
+              UI.clear(blankEl);
+              if (opt.isCorrect) {
+                blankEl.classList.add("correct");
+                blankEl.textContent = correctWord;
+              } else {
+                blankEl.classList.add("wrong");
+                blankEl.textContent = correctWord;
+                blankEl.classList.add("revealed");
+              }
+              updateScore();
+            }
+          });
+          blankEl.appendChild(btn);
+        });
+      }
+
+      passage.appendChild(blankEl);
+    } else {
+      // Normal text token
+      passage.appendChild(document.createTextNode(tk.raw));
+    }
+  });
+
+  body.appendChild(passage);
+  updateScore();
+}
+
+function fallbackDistractor(word) {
+  // Simple fallback: shift first letter
+  const vowels = "aeiou";
+  const first = word[0];
+  if (vowels.includes(first)) {
+    const idx = vowels.indexOf(first);
+    return vowels[(idx + 1) % vowels.length] + word.slice(1);
+  }
+  const consonants = "bcdfghjklmnpqrstvwxyz";
+  const ci = consonants.indexOf(first);
+  if (ci >= 0) return consonants[(ci + 3) % consonants.length] + word.slice(1);
+  return "other";
 }
 
 function catEmojiL(c) {
