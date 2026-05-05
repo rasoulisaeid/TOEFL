@@ -18,7 +18,6 @@ window.Views.week = function (mount, params) {
         el("span", null, `Week ${w}`),
       ]),
       el("h1", null, meta.theme),
-      el("div", { class: "muted", style: "margin-top:6px" }, content ? content.intro : meta.sub),
     ]),
     el("div", { class: "actions" }, [
       el("span", { class: "chip muted" }, meta.phase),
@@ -58,7 +57,7 @@ function dayCard(w, d) {
   return UI.el("div", { class: "day-card", onclick: () => location.hash = `#/week/${w}/day/${d.day}` }, [
     UI.el("div", { class: "dnum" }, `Day ${d.day}`),
     UI.el("div", { class: "dtopic" }, d.topic),
-    UI.el("div", { class: "dsub" }, d.summary),
+    UI.el("div", { style: "height:8px" }), // spacer
     UI.el("div", { class: "dprog" }, UI.el("div", { style: `width:${UI.pct(progress)}%` })),
     UI.el("div", { class: "muted", style: "font-size:12px" }, `${taskCount}/8 tasks`),
   ]);

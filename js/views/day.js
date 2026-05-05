@@ -25,7 +25,6 @@ window.Views.day = function (mount, params) {
         el("span", null, `Day ${d}`),
       ]),
       el("h1", null, dayContent.topic),
-      el("div", { class: "muted", style: "margin-top:6px" }, dayContent.summary),
     ]),
   ]);
   mount.appendChild(head);

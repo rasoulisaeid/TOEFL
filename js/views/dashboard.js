@@ -75,7 +75,6 @@ function weekCard(meta) {
       UI.el("span", { class: "muted" }, meta.phase.split(" ").slice(0,1)[0]),
     ]),
     UI.el("div", { class: "wtheme" }, meta.theme),
-    UI.el("div", { class: "wsub" }, meta.sub),
     UI.el("div", { class: "wbar" }, UI.el("div", { style: `width:${UI.pct(progress)}%` })),
     UI.el("div", { class: "skills" }, [
       skillBar("sk-sp", skills.speaking),
