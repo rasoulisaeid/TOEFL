@@ -13,7 +13,6 @@ window.Views.leitner = function (mount) {
           el("span", null, "Leitner"),
         ]),
         el("h1", null, "Leitner box"),
-        el("div", { class: "muted", style: "margin-top:6px" }, "Spaced repetition for active vocabulary. Box 1 → daily, Box 5 → monthly."),
       ]),
       el("div", { class: "actions" }, [
         el("button", { class: "btn", onclick: () => openAddCardModal(render) }, "+ Add word"),
