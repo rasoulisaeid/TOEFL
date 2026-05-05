@@ -297,6 +297,30 @@ function buildDictationCard(t) {
   const storageKey = `dictation:v3:${t.id}`;
   const cacheKey = `dictation:distractors:v3:${t.id}`;
 
+  const tokens = tokenizeForDictation(t.text);
+  const blankIndices = selectBlanks(tokens);
+  const blankedWords = tokens.filter(tk => blankIndices.has(tk.idx)).map(tk => tk.clean);
+
+  function loadAndRender() {
+    let state = Storage.get(storageKey, { answers: {}, completed: false });
+    const cached = Storage.get(cacheKey, null);
+
+    if (cached) {
+      renderDictation(body, tokens, blankIndices, cached, state, storageKey, cacheKey, loadAndRender);
+    } else {
+      UI.clear(body);
+      body.appendChild(el("div", { class: "thinking" }, "Generating exercise with Gemini Pro..."));
+      Gemini.generateDistractors(blankedWords).then(distractors => {
+        Storage.set(cacheKey, distractors);
+        UI.clear(body);
+        renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, loadAndRender);
+      }).catch(err => {
+        UI.clear(body);
+        body.appendChild(el("div", { class: "muted", style: "text-align:center;padding:20px" }, "Failed to generate exercise. " + (err.message || "")));
+      });
+    }
+  }
+
   // Header
   card.appendChild(el("div", { class: "row" }, [
     el("span", { class: "material-symbols-rounded", style: "font-size:22px;color:var(--blue)" }, "hearing"),
@@ -304,44 +328,23 @@ function buildDictationCard(t) {
     el("span", { class: "spacer" }),
     el("span", { class: "chip muted" }, "~50% hidden"),
   ]));
-  card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:4px;margin-bottom:14px" }, "Listen and pick the correct word from each pair to fill the numbered blanks."));
+  card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:4px;margin-bottom:14px" }, "Listen and pick the correct word from each pair above the blank."));
 
   const body = el("div", { class: "dictation-body" });
   card.appendChild(body);
 
-  const tokens = tokenizeForDictation(t.text);
-  const blankIndices = selectBlanks(tokens);
-  const blankedWords = tokens.filter(tk => blankIndices.has(tk.idx)).map(tk => tk.clean);
-
-  let state = Storage.get(storageKey, { answers: {}, completed: false });
-  const cached = Storage.get(cacheKey, null);
-
-  if (cached) {
-    renderDictation(body, tokens, blankIndices, cached, state, storageKey);
-  } else {
-    const loading = el("div", { class: "thinking" }, "Generating exercise with Gemini Pro...");
-    body.appendChild(loading);
-    Gemini.generateDistractors(blankedWords).then(distractors => {
-      Storage.set(cacheKey, distractors);
-      UI.clear(body);
-      renderDictation(body, tokens, blankIndices, distractors, state, storageKey);
-    }).catch(err => {
-      UI.clear(body);
-      body.appendChild(el("div", { class: "muted", style: "text-align:center;padding:20px" }, "Failed to generate exercise. " + (err.message || "")));
-    });
-  }
-
+  loadAndRender();
   return card;
 }
 
-function renderDictation(body, tokens, blankIndices, distractors, state, storageKey) {
+function renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, reloadFn) {
   const { el } = UI;
   UI.clear(body);
 
   // Number the blanks
-  const blankList = [];
   let num = 0;
-  const blankMap = {}; // idx -> { num, correctWord, correctLower, distractor }
+  const blankMap = {};
+  const blankList = [];
   tokens.forEach(tk => {
     if (blankIndices.has(tk.idx)) {
       num++;
@@ -349,19 +352,17 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
       const correctLower = tk.clean;
       const distractor = distractors[correctLower] || fallbackDistractor(correctLower);
       blankMap[tk.idx] = { num, correctWord, correctLower, distractor };
-      blankList.push({ num, idx: tk.idx, correctWord, correctLower, distractor });
+      blankList.push({ num, idx: tk.idx });
     }
   });
 
   const totalBlanks = blankList.length;
 
-  // Score
+  // Score + controls row
   const scoreLabel = el("span", { class: "muted", style: "font-size:13px" });
   const scoreBar = el("div", { class: "dictation-score-bar" });
   const scoreFill = el("div");
   scoreBar.appendChild(scoreFill);
-
-  const blankElements = {}; // idx -> DOM element for the blank in the passage
 
   function updateScore() {
     const correctCount = Object.values(state.answers).filter(a => a === true).length;
@@ -375,106 +376,73 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
     }
   }
 
-  body.appendChild(el("div", { class: "row", style: "margin-bottom:12px" }, [
+  body.appendChild(el("div", { class: "row", style: "margin-bottom:14px;flex-wrap:wrap;gap:8px" }, [
     scoreLabel, el("span", { class: "spacer" }), scoreBar,
-    el("button", { class: "btn sm ghost", style: "margin-left:8px", onclick: () => {
+    el("button", { class: "btn sm ghost", onclick: () => {
       state.answers = {};
       state.completed = false;
       Storage.set(storageKey, state);
-      renderDictation(body, tokens, blankIndices, distractors, state, storageKey);
+      renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, reloadFn);
     }}, "Reset"),
+    el("button", { class: "btn sm ghost", onclick: () => {
+      Storage.set(cacheKey, null);
+      state.answers = {};
+      state.completed = false;
+      Storage.set(storageKey, state);
+      reloadFn();
+    }}, "⟳ New pairs"),
   ]));
 
-  // === WORD BANK (pairs box above the passage) ===
-  const wordBank = el("div", { class: "dict-word-bank" });
-  wordBank.appendChild(el("div", { class: "dict-bank-label" }, "Word bank — pick the correct word"));
-
-  const pairsWrap = el("div", { class: "dict-pairs" });
-
-  blankList.forEach(b => {
-    const answered = state.answers[b.idx];
-    const pairEl = el("div", { class: "dict-pair" + (answered != null ? " answered" : "") });
-    pairEl.appendChild(el("span", { class: "dict-pair-num" }, String(b.num)));
-
-    // Build two options, shuffled
-    const options = [
-      { text: b.correctWord, isCorrect: true },
-      { text: b.distractor, isCorrect: false },
-    ];
-    if ((b.idx * 7) % 3 !== 0) options.reverse();
-
-    if (answered != null) {
-      // Already answered — show result
-      options.forEach(opt => {
-        const cls = opt.isCorrect ? "dict-pair-word correct" : "dict-pair-word faded";
-        pairEl.appendChild(el("span", { class: cls }, opt.text));
-      });
-    } else {
-      // Clickable options
-      options.forEach(opt => {
-        const btn = el("button", {
-          class: "dict-pair-word clickable",
-          text: opt.text,
-          onclick: () => {
-            state.answers[b.idx] = opt.isCorrect;
-            Storage.set(storageKey, state);
-            // Update the blank in passage
-            const blankEl = blankElements[b.idx];
-            if (blankEl) {
-              UI.clear(blankEl);
-              blankEl.textContent = b.correctWord;
-              blankEl.className = "dict-blank " + (opt.isCorrect ? "correct" : "revealed");
-            }
-            // Update the pair
-            UI.clear(pairEl);
-            pairEl.classList.add("answered");
-            pairEl.appendChild(el("span", { class: "dict-pair-num" }, String(b.num)));
-            options.forEach(o => {
-              const cls = o.isCorrect ? "dict-pair-word correct" : "dict-pair-word faded";
-              pairEl.appendChild(el("span", { class: cls }, o.text));
-            });
-            updateScore();
-          }
-        });
-        pairEl.appendChild(btn);
-      });
-    }
-
-    pairsWrap.appendChild(pairEl);
-  });
-
-  wordBank.appendChild(pairsWrap);
-  body.appendChild(wordBank);
-
-  // === PASSAGE with numbered blanks ===
+  // === PASSAGE — each blank has its pair ABOVE the underline ===
   const passage = el("div", { class: "dictation-passage" });
 
   tokens.forEach(tk => {
     if (blankIndices.has(tk.idx)) {
       const b = blankMap[tk.idx];
       const answered = state.answers[tk.idx];
-      let cls = "dict-blank";
-      let text;
+
+      // Wrapper: vertical stack (pair on top, blank below)
+      const wrap = el("span", { class: "dict-inline-wrap" });
 
       if (answered === true) {
-        cls += " correct";
-        text = b.correctWord;
+        // Correctly answered — just show the word
+        wrap.classList.add("done");
+        wrap.appendChild(el("span", { class: "dict-filled correct" }, b.correctWord));
       } else if (answered === false) {
-        cls += " revealed";
-        text = b.correctWord;
+        // Wrong — show correct word in orange
+        wrap.classList.add("done");
+        wrap.appendChild(el("span", { class: "dict-filled revealed" }, b.correctWord));
       } else {
-        text = "";
+        // Unanswered: show pair buttons on top, blank line below
+        const options = [
+          { text: b.correctWord, isCorrect: true },
+          { text: b.distractor, isCorrect: false },
+        ];
+        if ((tk.idx * 7) % 3 !== 0) options.reverse();
+
+        const pairRow = el("span", { class: "dict-pair-row" });
+        options.forEach(opt => {
+          pairRow.appendChild(el("button", {
+            class: "dict-pick",
+            text: opt.text,
+            onclick: () => {
+              state.answers[tk.idx] = opt.isCorrect;
+              Storage.set(storageKey, state);
+              // Replace inline
+              UI.clear(wrap);
+              wrap.classList.add("done");
+              wrap.appendChild(el("span", {
+                class: "dict-filled " + (opt.isCorrect ? "correct" : "revealed")
+              }, b.correctWord));
+              updateScore();
+            }
+          }));
+        });
+        wrap.appendChild(pairRow);
+        wrap.appendChild(el("span", { class: "dict-underline" }));
       }
 
-      const blankEl = el("span", { class: cls });
-      if (text) {
-        blankEl.textContent = text;
-      } else {
-        blankEl.appendChild(el("span", { class: "dict-blank-num" }, String(b.num)));
-        blankEl.appendChild(el("span", { class: "dict-blank-line" }));
-      }
-      blankElements[tk.idx] = blankEl;
-      passage.appendChild(blankEl);
+      passage.appendChild(wrap);
     } else {
       passage.appendChild(document.createTextNode(tk.raw));
     }

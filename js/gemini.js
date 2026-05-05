@@ -1,11 +1,11 @@
 /* Gemini API integration for word analysis + writing refinement */
 window.Gemini = (function() {
-  const API_KEY = "AIzaSyCihWzYeHx38dOd4YpPKLkW3_OtQCe60Og";
   const MODEL = "gemini-3-flash-preview";
   const FALLBACK_MODELS = ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"];
 
   function getKey() {
-    return (window.Storage && Storage.get) ? Storage.get("gemini:key", API_KEY) : API_KEY;
+    const configKey = (window.CONFIG && window.CONFIG.GEMINI_API_KEY) || "";
+    return (window.Storage && Storage.get) ? Storage.get("gemini:key", configKey) : configKey;
   }
   function url(model) {
     return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${getKey()}`;

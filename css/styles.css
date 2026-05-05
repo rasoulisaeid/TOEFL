@@ -1507,136 +1507,86 @@ main {
   border-top: 4px solid var(--blue);
 }
 
-/* --- Word Bank (pairs box above passage) --- */
-.dict-word-bank {
-  background: var(--card-2);
-  border: 2px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 14px 16px;
-  margin-bottom: 18px;
-}
-.dict-bank-label {
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
-.dict-pairs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.dict-pair {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: white;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 4px 6px;
-}
-.dict-pair.answered {
-  opacity: 0.7;
-}
-.dict-pair-num {
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: var(--primary-soft);
-  color: var(--primary-dark);
-  display: grid; place-items: center;
-  font-size: 10px;
-  font-weight: 900;
-  flex-shrink: 0;
-}
-.dict-pair-word {
-  font-size: 13px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 8px;
-  border: none;
-  background: none;
-  color: var(--text);
-}
-.dict-pair-word.clickable {
-  cursor: pointer;
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  transition: all .12s;
-}
-.dict-pair-word.clickable:hover {
-  border-color: var(--primary);
-  color: var(--primary-dark);
-  background: var(--primary-soft);
-}
-.dict-pair-word.correct {
-  color: var(--green-dark);
-  font-weight: 800;
-}
-.dict-pair-word.faded {
-  color: var(--muted);
-  text-decoration: line-through;
-  opacity: 0.5;
-}
-
-/* --- Passage with numbered blanks --- */
 .dictation-passage {
   font-size: 17px;
-  line-height: 2.4;
+  line-height: 3.8; /* Extra line height for the vertical pairs */
   color: var(--text);
   font-weight: 500;
 }
 
-.dict-blank {
+/* Vertical stack for the blank: buttons on top, line on bottom */
+.dict-inline-wrap {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  vertical-align: bottom;
+  margin: 0 4px;
+  position: relative;
+  line-height: 1;
+}
+
+.dict-pair-row {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 2px;
+  animation: slide-up .3s ease-out;
+}
+
+.dict-pick {
+  padding: 2px 6px;
+  border: 1.5px solid var(--border);
+  border-bottom-width: 2.5px;
+  background: white;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .1s;
+  color: var(--text);
+  white-space: nowrap;
+}
+.dict-pick:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: translateY(-1px);
+}
+.dict-pick:active {
+  transform: translateY(1px);
+  border-bottom-width: 1.5px;
+}
+
+.dict-underline {
+  width: 100%;
+  min-width: 50px;
+  height: 2.5px;
+  background: var(--border-2);
+  border-radius: 999px;
+  margin-top: 1px;
+}
+
+/* Filled state */
+.dict-inline-wrap.done {
   vertical-align: baseline;
-  margin: 0 2px;
-  min-width: 60px;
 }
-
-.dict-blank-num {
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  background: var(--blue-soft);
-  color: var(--blue-dark);
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 10px;
-  font-weight: 900;
-  flex-shrink: 0;
-}
-.dict-blank-line {
-  flex: 1;
-  min-width: 40px;
-  border-bottom: 2.5px dashed var(--border-2);
-  margin-left: 3px;
-  height: 1em;
-}
-
-.dict-blank.correct {
-  color: var(--green-dark);
+.dict-filled {
   font-weight: 800;
-  background: var(--green-soft);
-  padding: 2px 8px;
-  border-radius: 8px;
-  border: 1.5px solid rgba(88,204,2,.3);
+  font-size: 17px;
+  padding: 0 4px;
+  border-radius: 6px;
   animation: pop-in .3s cubic-bezier(.4, 1.6, .6, 1);
-  min-width: 0;
 }
-
-.dict-blank.revealed {
+.dict-filled.correct {
+  color: var(--green-dark);
+  background: var(--green-soft);
+  border-bottom: 2px solid var(--green);
+}
+.dict-filled.revealed {
   color: var(--orange-dark);
-  font-weight: 800;
   background: var(--orange-soft);
-  padding: 2px 8px;
-  border-radius: 8px;
-  border: 1.5px solid rgba(255,150,0,.3);
-  min-width: 0;
+  border-bottom: 2px solid var(--orange);
 }
 
-/* --- Score bar --- */
+/* Score bar */
 .dictation-score-bar {
   width: 120px;
   height: 8px;
@@ -1651,6 +1601,11 @@ main {
   border-radius: 999px;
   width: 0;
   transition: width .4s cubic-bezier(.2,.7,.3,1.2);
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================================
