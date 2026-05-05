@@ -117,6 +117,22 @@ textarea { resize: vertical; min-height: 80px; }
   box-shadow: var(--shadow-sm);
   display: flex; align-items: center; gap: 6px;
 }
+.sync-badge {
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-weight: 600; font-size: 12px;
+  border: 1px solid var(--border);
+  background: white;
+  box-shadow: var(--shadow-sm);
+  transition: all .2s;
+  white-space: nowrap;
+}
+.sync-badge:hover { opacity: .8; }
+.sync-badge.synced  { border-color: var(--success); color: var(--success); background: #f0fdf4; }
+.sync-badge.syncing { border-color: var(--warn); color: var(--warn); background: #fffbeb; }
+.sync-badge.error   { border-color: var(--danger); color: var(--danger); background: #fef2f2; }
+.sync-badge.offline { border-color: #94a3b8; color: #94a3b8; background: #f8fafc; }
+.sync-badge.disconnected { border-color: var(--border); color: var(--muted); background: white; }
 
 /* ==== Main + Footer ==== */
 main {
