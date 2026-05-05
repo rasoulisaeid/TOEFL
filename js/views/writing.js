@@ -507,6 +507,7 @@ function buildGuided(w, d, task) {
       refineBtn.textContent = "Thinking…";
       const thinking = el("div", { class: "thinking" }, "Polishing your sentence");
       stepWrap.appendChild(thinking);
+      const t = UI.toast("Polishing your sentence...", 0);
       try {
         const res = await Gemini.refineSentence({
           studentText: text,
@@ -515,6 +516,7 @@ function buildGuided(w, d, task) {
           level: "B1",
         });
         thinking.remove();
+        t.dismiss();
         if (res && res.corrected) {
           state.steps[i].refined = res;
           save();
@@ -524,6 +526,7 @@ function buildGuided(w, d, task) {
         }
       } catch (e) {
         thinking.remove();
+        t.dismiss();
         console.error(e);
         UI.toast("Refine failed: " + (e.message || e));
       } finally {

@@ -133,11 +133,13 @@ window.WordLookup = {
   async lookup(word) {
     if (!word || word.length < 2) return;
     
-    UI.toast(`Analyzing "${word}" with Gemini...`, 2000);
+    const loadingToast = UI.toast(`Analyzing "${word}" with Gemini...`, 0);
     
     const result = await Gemini.analyzeWord(word);
+    loadingToast.dismiss();
+
     if (!result) {
-      UI.toast("Failed to get word info. Check your connection or API key.", 3000);
+      UI.toast("Failed to get word info. Check your connection or API key.", 4000);
       return;
     }
     

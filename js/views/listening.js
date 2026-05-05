@@ -311,6 +311,7 @@ function buildDictationCard(t) {
     } else {
       UI.clear(body);
       body.appendChild(el("div", { class: "thinking" }, "Generating exercise with Gemini Pro..."));
+      const t = UI.toast("Generating exercise...", 0);
       Gemini.generateDistractors(blankedWords).then(distractors => {
         Storage.set(cacheKey, distractors);
         UI.clear(body);
@@ -318,6 +319,8 @@ function buildDictationCard(t) {
       }).catch(err => {
         UI.clear(body);
         body.appendChild(el("div", { class: "muted", style: "text-align:center;padding:20px" }, "Failed to generate exercise. " + (err.message || "")));
+      }).finally(() => {
+        t.dismiss();
       });
     }
   }

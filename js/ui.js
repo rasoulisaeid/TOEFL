@@ -52,17 +52,26 @@
   }
 
   let toastTimer = null;
-  function toast(msg) {
+  function toast(msg, duration = 1800) {
     const existing = document.querySelector(".toast");
     if (existing) existing.remove();
+    
     const t = el("div", { class: "toast", text: msg });
     document.body.appendChild(t);
     requestAnimationFrame(() => t.classList.add("show"));
+    
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
+    
+    const dismiss = () => {
       t.classList.remove("show");
       setTimeout(() => t.remove(), 250);
-    }, 1800);
+    };
+
+    if (duration > 0) {
+      toastTimer = setTimeout(dismiss, duration);
+    }
+    
+    return { dismiss };
   }
 
   function confirmDialog(title, message, onYes) {
