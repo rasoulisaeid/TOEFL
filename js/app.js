@@ -31,12 +31,19 @@
     }
   }
 
+  let lastHash = "";
   function route() {
-    const parts = parseHash(); // e.g. ["week","1","day","3","speaking","together","conv"]
+    const curHash = location.hash || "#/dashboard";
+    const isNewPage = curHash !== lastHash;
+    const oldScroll = window.scrollY;
+    lastHash = curHash;
+
+    const parts = parseHash(); 
     const head = parts[0] || "dashboard";
 
     try {
-      window.scrollTo(0, 0);
+      if (isNewPage) window.scrollTo(0, 0);
+      
       switch (head) {
         case "dashboard":
           Views.dashboard(view);
@@ -73,6 +80,10 @@
         }
         default:
           Views.placeholder(view, "Page not found");
+      }
+
+      if (!isNewPage) {
+        requestAnimationFrame(() => window.scrollTo(0, oldScroll));
       }
     } catch (e) {
       console.error(e);
