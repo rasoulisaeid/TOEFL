@@ -375,41 +375,57 @@ window.Views.imageStory = function (mount, params) {
         const isMe = (step % 2 === 0 && myRole === 'A') || (step % 2 === 1 && myRole === 'B');
         const whoName = step % 2 === 0 ? "First Person (A)" : "Second Person (B)";
 
-        content.appendChild(el("div", { class: "muted", style: "font-weight:800; font-size:12px; text-transform:uppercase" }, `Panel ${step + 1} of 8`));
+        // Use the same two-column layout as the regular scene modal
+        m.classList.add("scene-modal");
         
-        const turnBadge = el("div", { 
-          style: `padding:6px 16px; border-radius:999px; font-weight:900; font-size:13px; margin-top:8px; background:${isMe ? 'var(--primary)' : 'var(--card-2)'}; color:${isMe ? 'white' : 'var(--text-soft)'}; border:2px solid ${isMe ? 'var(--primary-dark)' : 'var(--border)'}` 
-        }, isMe ? "Your Turn to Describe" : `Waiting for ${whoName}...`);
-        content.appendChild(turnBadge);
-
-        // Image Panel
-        const imgWrap = el("div", { style: "margin:20px auto; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--card-2); max-width:400px" });
-        const cv = el("canvas", { style: "width:100%; display:block" });
-        imgWrap.appendChild(cv);
+        // LEFT: Image
+        const left = el("div", { class: "modal-left" });
+        const cWrap = el("div", { class: "canvas-wrap" });
+        const cv = el("canvas");
+        cWrap.appendChild(cv);
+        left.appendChild(cWrap);
         if (imageData) sliceTo(cv, imageData, step, true);
-        else imgWrap.appendChild(el("div", { style: "padding:40px; color:var(--muted)" }, "No image uploaded"));
-        content.appendChild(imgWrap);
+        else cWrap.appendChild(el("div", { class: "empty" }, "No image uploaded"));
+        content.appendChild(left);
 
-        // Hint & Vocab
-        const info = el("div", { style: "margin-bottom:20px" }, [
-           el("div", { style: "font-weight:900; font-size:18px; margin-bottom:10px" }, scene.title),
-           el("div", { class: "row", style: "justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:12px" }, 
-             (scene.vocab || []).map(v => el("span", { class: "chip" }, v))),
-           el("div", { style: "padding:14px; background:var(--gold-soft); color:#6b5400; border-radius:12px; font-size:15px; font-weight:700" }, [
-             el("span", { style: "margin-right:6px" }, "💡"), scene.hint
-           ])
-        ]);
-        content.appendChild(info);
+        // RIGHT: Practice Info
+        const right = el("div", { class: "modal-right" });
+        
+        // Turn Badge
+        const turnBadge = el("div", { 
+          style: `display:inline-block; padding:6px 16px; border-radius:999px; font-weight:900; font-size:13px; margin-bottom:12px; background:${isMe ? 'var(--primary)' : 'var(--card-2)'}; color:${isMe ? 'white' : 'var(--text-soft)'}; border:2px solid ${isMe ? 'var(--primary-dark)' : 'var(--border)'}` 
+        }, isMe ? "Your Turn to Describe" : `Waiting for ${whoName}...`);
+        right.appendChild(turnBadge);
 
+        right.appendChild(el("h2", null, `Scene ${step + 1} — ${scene.title}`));
+        
+        const vocabRow = el("div", { class: "row", style: "flex-wrap:wrap;gap:6px; margin:10px 0" },
+          (scene.vocab || []).map((v) => el("span", { class: "chip" }, v)));
+        
+        const hintBox = el("div", { 
+          style: "padding:16px; background:var(--gold-soft); color:#6b5400; border-radius:12px; font-size:15px; font-weight:700; margin:16px 0; line-height:1.4" 
+        }, [ el("span", { style: "margin-right:8px" }, "💡"), scene.hint ]);
+
+        right.appendChild(el("div", { class: "desc-area" }, [
+          el("div", { class: "muted", style: "font-size:11px;text-transform:uppercase" }, "Useful words"),
+          vocabRow,
+          hintBox
+        ]));
+
+        // Footer Actions
+        const footer = el("div", { class: "modal-actions", style: "margin-top:auto" }, []);
         if (isMe) {
-          content.appendChild(el("button", { 
+          footer.appendChild(el("button", { 
             class: "btn big primary", 
             style: "width:100%; padding:20px; font-size:18px", 
             onclick: async () => { await window.PracticeSync.update({ step: step + 1 }); }
           }, step === scenes.length - 1 ? "Finish Session" : "Done with this Panel →"));
         } else {
-          content.appendChild(el("div", { class: "thinking", style: "padding:20px; justify-content:center" }, `Waiting for ${whoName}...`));
+          footer.appendChild(el("div", { class: "thinking", style: "width:100%; padding:20px; justify-content:center" }, `Waiting for ${whoName}...`));
         }
+        right.appendChild(footer);
+
+        content.appendChild(right);
       }
 
       function finish(remoteTriggered = false) {
