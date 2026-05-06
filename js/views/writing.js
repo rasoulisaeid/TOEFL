@@ -577,6 +577,7 @@ function buildScramble(w, d, task) {
 function buildGuided(w, d, task) {
   const { el } = UI;
   const wrap = el("div", { class: "col" });
+  const main = el("div", { class: "col" });
 
   wrap.appendChild(el("div", { class: "card" }, [
     el("div", { class: "row" }, [
@@ -600,7 +601,19 @@ function buildGuided(w, d, task) {
   });
   function save() { Storage.set(stateKey, state); }
 
-  task.steps.forEach((step, i) => wrap.appendChild(buildStep(step, i)));
+  task.steps.forEach((step, i) => main.appendChild(buildStep(step, i)));
+
+  // Sidebar — generated text so far
+  const sidebar = el("div", { class: "scramble-sidebar" });
+  sidebar.appendChild(el("h3", null, "Your text so far"));
+  const sidebarText = el("div", { class: "sidebar-text" });
+  sidebar.appendChild(sidebarText);
+
+  // Layout
+  const layout = el("div", { class: "scramble-layout" });
+  layout.appendChild(main);
+  layout.appendChild(sidebar);
+  wrap.appendChild(layout);
 
   // Final paragraph
   const finalCard = el("div", { class: "guided-final", style: "display:none" }, [
@@ -619,7 +632,7 @@ function buildGuided(w, d, task) {
       }}),
     ]),
   ]);
-  wrap.appendChild(finalCard);
+  main.appendChild(finalCard);
 
   refreshAll();
 
@@ -742,8 +755,7 @@ function buildGuided(w, d, task) {
         all.forEach((node) => node.remove());
         finalCard.remove();
         // Rebuild
-        task.steps.forEach((step, idx) => wrap.insertBefore(buildStep(step, idx), finalCard));
-        wrap.appendChild(finalCard);
+        task.steps.forEach((step, idx) => main.insertBefore(buildStep(step, idx), finalCard));
         refreshAll();
       }}),
     ]);
@@ -766,6 +778,23 @@ function buildGuided(w, d, task) {
       if (state.steps[i] && state.steps[i].refined && !state.steps[i].accepted) {
         showRefined(node, i);
       }
+    });
+    refreshSidebar();
+  }
+
+  function refreshSidebar() {
+    UI.clear(sidebarText);
+    task.steps.forEach((step, idx) => {
+      const s = state.steps[idx];
+      let span;
+      if (s.accepted) {
+        span = el("span", { class: "sb-sentence solved", text: s.draft.trim() + " " });
+      } else if (s.draft.trim()) {
+        span = el("span", { class: "sb-sentence wip", text: s.draft.trim() + "… " });
+      } else {
+        span = el("span", { class: "sb-sentence empty", text: "_____. " });
+      }
+      sidebarText.appendChild(span);
     });
   }
 }
