@@ -198,6 +198,26 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   margin-top: auto;
   display: flex; flex-direction: column; gap: 10px;
 }
+.sidebar-stats {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.xp-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #5c3e00;
+  font-weight: 900; font-size: 16px;
+  border: 2px solid #e0be00;
+  border-bottom: 4px solid #ccab00;
+  box-shadow: 0 4px 14px rgba(255, 215, 0, .25);
+  letter-spacing: 0.02em;
+  animation: pop-in .35s ease;
+}
+.xp-star { font-size: 18px; }
+.xp-num { font-variant-numeric: tabular-nums; }
+.xp-unit { font-size: 11px; font-weight: 800; opacity: 0.8; margin-left: -2px; }
+
 .streak-badge {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 14px;
@@ -213,6 +233,29 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 }
 .streak-flame { font-size: 20px; filter: drop-shadow(0 1px 0 rgba(0,0,0,.1)); }
 .streak-num { font-variant-numeric: tabular-nums; }
+
+/* XP Toast overlay */
+.xp-toast-overlay {
+  position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+  z-index: 9999; pointer-events: none;
+  display: flex; flex-direction: column; gap: 8px; align-items: center;
+}
+.xp-toast {
+  background: white; border: 2px solid #FFD700; border-radius: 20px;
+  padding: 8px 16px; display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  animation: xp-float 2.5s ease-out forwards;
+}
+.xp-toast .amount { font-weight: 900; font-size: 20px; color: #ccab00; }
+.xp-toast .reason { font-weight: 800; font-size: 14px; color: var(--text); }
+
+@keyframes xp-float {
+  0% { transform: translateY(20px) scale(0.8); opacity: 0; }
+  10% { transform: translateY(0) scale(1.1); opacity: 1; }
+  20% { transform: translateY(0) scale(1); opacity: 1; }
+  80% { transform: translateY(-30px); opacity: 1; }
+  100% { transform: translateY(-50px); opacity: 0; }
+}
 
 .sync-badge {
   display: inline-flex; align-items: center; gap: 6px;

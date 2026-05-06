@@ -100,6 +100,7 @@
             // Record first attempt for scoring
             if (state.answers[state.current] == null) {
               state.answers[state.current] = i;
+              if (i === q.correct) State.addXP(1, "Correct answer");
             }
 
             // Record this try

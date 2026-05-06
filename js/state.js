@@ -26,6 +26,64 @@
     SKILLS, SESSIONS,
     today: TODAY,
 
+    /* ===== XP System ===== */
+    getXP() {
+      return Storage.get("totalXP", 0);
+    },
+    addXP(amount, reason = "Practice") {
+      const cur = this.getXP();
+      const next = cur + amount;
+      Storage.set("totalXP", next);
+      if (typeof UI !== "undefined" && UI.toastXP) {
+        UI.toastXP(amount, reason);
+      }
+      // Trigger sidebar update if app.js is ready
+      if (window.updateSidebarXP) window.updateSidebarXP(next);
+      return next;
+    },
+    migrateXP() {
+      // One-time migration to account for past done tasks
+      if (Storage.get("xp_migrated", false)) return;
+      
+      let total = 0;
+      // Scan all weeks
+      for (let w = 1; w <= 25; w++) {
+        const wk = Storage.get(`week:${w}`, null);
+        if (!wk) continue;
+        Object.keys(wk.days).forEach(dNum => {
+          const day = wk.days[dNum];
+          Object.keys(day.tasks).forEach(tid => {
+            const t = day.tasks[tid];
+            if (t.done) {
+              // Rule-based XP for past tasks
+              if (tid.includes("cloze")) total += 3;
+              else if (tid.includes("scramble")) total += 5;
+              else if (tid.includes("guided")) total += 10;
+              else if (tid.includes("together") || tid.includes("solo")) {
+                // Speaking/Conv repeats
+                const reps = t.repeats || 0;
+                total += reps * 3;
+              } else {
+                // Default 1xp per done task if not specified
+                total += 1;
+              }
+            }
+          });
+        });
+      }
+      
+      // Leitner history? 
+      const cards = this.getCards();
+      cards.forEach(c => {
+        const history = c.history || [];
+        total += history.length; // 1xp per review
+      });
+
+      Storage.set("totalXP", total);
+      Storage.set("xp_migrated", true);
+      console.log(`XP Migration complete: ${total} XP granted.`);
+    },
+
     /* ===== Weeks / Days ===== */
     getWeek(w) {
       return Storage.get(`week:${w}`, defaultWeekState());

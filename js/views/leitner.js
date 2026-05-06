@@ -112,6 +112,7 @@ window.Views.leitner = function (mount) {
       }
       function answer(correct) {
         State.answerCard(queue[idx].id, correct);
+        State.addXP(1, "Vocab review");
         idx += 1; revealed = false;
         tick();
       }

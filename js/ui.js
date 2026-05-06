@@ -74,6 +74,20 @@
     return { dismiss };
   }
 
+  function toastXP(amount, reason) {
+    let overlay = document.querySelector(".xp-toast-overlay");
+    if (!overlay) {
+      overlay = el("div", { class: "xp-toast-overlay" });
+      document.body.appendChild(overlay);
+    }
+    const t = el("div", { class: "xp-toast" }, [
+      el("span", { class: "amount" }, `+${amount}`),
+      el("span", { class: "reason" }, reason)
+    ]);
+    overlay.appendChild(t);
+    setTimeout(() => t.remove(), 2600);
+  }
+
   function confirmDialog(title, message, onYes) {
     modal((m, close) => {
       appendChildren(m, [
@@ -109,7 +123,7 @@
     return container;
   }
 
-  window.UI = { el, clear, modal, toast, confirmDialog, pct, clickableText };
+  window.UI = { el, clear, modal, toast, toastXP, confirmDialog, pct, clickableText };
 
   /* Shared vocabulary components */
   window.buildVocabCard = function (vocabList, w, d, title) {

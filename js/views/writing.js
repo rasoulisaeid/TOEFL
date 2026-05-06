@@ -251,6 +251,7 @@ function buildCloze(w, d, task) {
         correct >= Math.ceil(total * 0.7)
           ? el("button", { class: "btn success", text: "Mark complete ✓", onclick: () => {
               State.setTaskDone(w, d, task.id, true); State.pingStreak();
+              State.addXP(3, "Cloze writing complete");
               UI.toast("Writing complete ✓");
               setTimeout(() => location.hash = `#/week/${w}/day/${d}`, 500);
             }})
@@ -350,6 +351,7 @@ function buildScramble(w, d, task) {
       return;
     }
     State.setTaskDone(w, d, task.id, true); State.pingStreak();
+    State.addXP(5, "Scramble writing complete");
     UI.toast("Writing complete ✓");
     setTimeout(() => location.hash = `#/week/${w}/day/${d}`, 500);
   }}));
@@ -625,6 +627,7 @@ function buildGuided(w, d, task) {
       el("button", { class: "btn success", text: "Mark complete ✓", onclick: () => {
         State.setTaskDone(w, d, task.id, true);
         State.pingStreak();
+        State.addXP(10, "Guided writing complete");
         UI.toast("Writing complete ✓");
         setTimeout(() => location.hash = `#/week/${w}/day/${d}`, 500);
       }}),

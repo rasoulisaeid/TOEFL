@@ -9,6 +9,11 @@
     return parts;
   }
 
+  window.updateSidebarXP = function (val) {
+    const xpEl = document.getElementById("xpNum");
+    if (xpEl) xpEl.textContent = val.toLocaleString();
+  };
+
   function highlightNav() {
     const cur = location.hash || "#/dashboard";
     document.querySelectorAll(".nav-link").forEach((a) => {
@@ -22,13 +27,17 @@
       
       a.classList.toggle("active", active);
     });
+    
+    // Streak update
     const streakEl = document.getElementById("streakBadge");
     const s = State.getStreak().count;
     if (streakEl) {
       const numEl = streakEl.querySelector(".streak-num");
       if (numEl) numEl.textContent = s;
-      else streakEl.innerHTML = `<span class="streak-flame">🔥</span><span class="streak-num">${s}</span>`;
     }
+
+    // XP update
+    updateSidebarXP(State.getXP());
   }
 
   let lastHash = "";
@@ -211,6 +220,7 @@
   });
 
   // Initial paint
+  State.migrateXP();
   if (!location.hash) location.hash = "#/dashboard";
   else route();
   highlightNav();

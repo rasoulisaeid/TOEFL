@@ -460,6 +460,7 @@ window.Views.imageStory = function (mount, params) {
             onclick: async () => {
               session.finished = true;
               State.incrementConvRepeats(w, d, story.id + ":story");
+              State.addXP(5, "Story practice");
               if (!remoteTriggered) {
                 await window.PracticeSync.update({ finished: true });
                 setTimeout(() => window.PracticeSync.clear(), 1500);

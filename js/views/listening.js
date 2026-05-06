@@ -386,6 +386,7 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
       state.completed = true;
       Storage.set(storageKey, state);
       UI.toast("🎉 Dictation complete!");
+      State.addXP(3, "Listening dictation");
     }
   }
   body.appendChild(el("div", { class: "row", style: "margin-bottom:14px;flex-wrap:wrap;gap:8px" }, [

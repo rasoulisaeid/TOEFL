@@ -233,6 +233,7 @@ window.Views.speaking = function (mount, params) {
                 // onSync echo from our own update doesn't re-fire finish(true).
                 session.finished = true;
                 State.incrementConvRepeats(w, d, conv.id);
+                State.addXP(3, "Conversation repeat");
                 if (!remoteTriggered) {
                   await window.PracticeSync.update({ finished: true });
                   setTimeout(() => window.PracticeSync.clear(), 1500);
