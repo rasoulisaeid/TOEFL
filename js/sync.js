@@ -311,6 +311,71 @@
     });
   }
 
+  /* ── Practice Sync: real-time turn-based sync ─────── */
+  const PracticeSync = {
+    _sse: null,
+    _taskId: null,
+    _cb: null,
+
+    async join(taskId, callback) {
+      this.leave(); 
+      this._taskId = taskId;
+      this._cb = callback;
+      
+      const safeId = taskId.replace(/:/g, "_");
+      const url = `${DB_URL}/families/${FAMILY_KEY}/sessions/${safeId}.json`;
+      
+      this._sse = new EventSource(url);
+      this._sse.addEventListener("put", (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          if (payload && payload.path === "/" && payload.data) callback(payload.data);
+        } catch(err) {}
+      });
+      this._sse.addEventListener("patch", (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          if (payload && payload.data) callback(payload.data);
+        } catch(err) {}
+      });
+
+      // Initial pull
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) callback(data);
+        }
+      } catch(e) {}
+    },
+
+    async update(data) {
+      if (!this._taskId) return;
+      const safeId = this._taskId.replace(/:/g, "_");
+      const url = `${DB_URL}/families/${FAMILY_KEY}/sessions/${safeId}.json`;
+      await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, updatedAt: Date.now(), lastClientId: CLIENT_ID })
+      });
+    },
+
+    async clear() {
+      if (!this._taskId) return;
+      const safeId = this._taskId.replace(/:/g, "_");
+      const url = `${DB_URL}/families/${FAMILY_KEY}/sessions/${safeId}.json`;
+      await fetch(url, { method: "DELETE" });
+    },
+
+    leave() {
+      if (this._sse) this._sse.close();
+      this._sse = null;
+      this._taskId = null;
+    }
+  };
+  window.PracticeSync = PracticeSync;
+  window.SYNC_CLIENT_ID = CLIENT_ID;
+
   /* ── Bootstrap: runs automatically on page load ────── */
   async function init() {
     patchStorage();

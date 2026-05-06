@@ -99,70 +99,142 @@ window.Views.speaking = function (mount, params) {
 
     function openPracticeModal() {
       UI.modal((m, close) => {
-        const roles = conv.roles || ["Role A", "Role B"];
-        
-        const content = el("div", { class: "col", style: "gap:24px; min-height:300px; justify-content:center; align-items:center; text-align:center" });
+        const content = el("div", { class: "col", style: "gap:24px; min-height:350px; justify-content:center; align-items:center; text-align:center" });
         m.appendChild(content);
+
+        let session = { roles: { A: null, B: null }, step: 0 };
+        let myRole = null; 
+
+        function onSync(data) {
+          if (!data) return;
+          if (data.roles) session.roles = { ...session.roles, ...data.roles };
+          if (data.step !== undefined) session.step = data.step;
+          
+          if (myRole === null) showRolePicker();
+          else renderStep();
+        }
 
         function showRolePicker() {
           UI.clear(content);
           content.appendChild(el("h2", { style: "margin:0" }, "Choose your role"));
-          content.appendChild(el("div", { class: "muted" }, "Which part will you speak?"));
+          content.appendChild(el("div", { class: "muted", style: "margin-bottom:20px" }, "Select a role to start synced practice."));
           
+          const roles = [cleanRole(conv.roles[0]), cleanRole(conv.roles[1])];
           const btns = el("div", { class: "row", style: "gap:12px; width:100%" }, [
-            el("button", { class: "btn big primary", style: "flex:1; padding:25px 10px", onclick: () => startPractice(0) }, [
-              el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, "Role A"),
-              el("div", { style: "font-size:20px; font-weight:900" }, cleanRole(conv.roles[0]))
-            ]),
-            el("button", { class: "btn big primary", style: "flex:1; padding:25px 10px", onclick: () => startPractice(1) }, [
-              el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, "Role B"),
-              el("div", { style: "font-size:20px; font-weight:900" }, cleanRole(conv.roles[1]))
-            ])
+            roleBtn("A", roles[0]),
+            roleBtn("B", roles[1])
           ]);
           content.appendChild(btns);
+
+          content.appendChild(el("div", { style: "margin-top:20px; border-top:1px solid var(--border); padding-top:20px; width:100%" }, [
+            el("button", { class: "btn ghost sm", onclick: async () => {
+              if (confirm("Reset current practice session?")) {
+                await window.PracticeSync.clear();
+                session = { roles: { A: null, B: null }, step: 0 };
+                showRolePicker();
+              }
+            }}, "Reset Session")
+          ]));
         }
 
-        function startPractice(myRoleIdx) {
-          let step = 0;
+        function roleBtn(label, name) {
+          const owner = session.roles[label];
+          const isTaken = owner && owner !== window.SYNC_CLIENT_ID;
+          const isMe = owner === window.SYNC_CLIENT_ID;
+          
+          return el("button", { 
+            class: `btn big ${isMe ? 'primary' : (isTaken ? 'ghost' : 'primary')}`, 
+            style: `flex:1; padding:25px 10px; position:relative; ${isTaken ? 'opacity:0.5; pointer-events:none' : ''}`, 
+            onclick: () => startPractice(label) 
+          }, [
+            el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, `Role ${label}`),
+            el("div", { style: "font-size:20px; font-weight:900" }, name),
+            isTaken ? el("div", { style: "font-size:10px; margin-top:4px; color:var(--red)" }, "ALREADY TAKEN") : null
+          ]);
+        }
+
+        async function startPractice(roleLabel) {
+          myRole = roleLabel;
+          const update = { roles: { [roleLabel]: window.SYNC_CLIENT_ID } };
+          await window.PracticeSync.update(update);
+          renderStep();
+        }
+
+        function renderStep() {
+          UI.clear(content);
           const dialogue = conv.dialogue || [];
+          const step = session.step;
           const roles = [cleanRole(conv.roles[0]), cleanRole(conv.roles[1])];
 
-          function next() {
-            UI.clear(content);
-            const line = dialogue[step];
-            const isMe = (line.who === 'A' && myRoleIdx === 0) || (line.who === 'B' && myRoleIdx === 1);
-            const whoName = line.who === 'A' ? roles[0] : roles[1];
-            
-            content.appendChild(el("div", { class: "muted", style: "font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.05em" }, `Line ${step + 1} of ${dialogue.length}`));
-            
-            const turnBadge = el("div", { 
-              style: `padding:6px 16px; border-radius:999px; font-weight:900; font-size:13px; margin-top:8px; background:${isMe ? 'var(--primary)' : 'var(--card-2)'}; color:${isMe ? 'white' : 'var(--text-soft)'}; border:2px solid ${isMe ? 'var(--primary-dark)' : 'var(--border)'}` 
-            }, isMe ? `Your Turn (${line.who}: ${whoName})` : `${line.who}: ${whoName}'s Turn`);
-            content.appendChild(turnBadge);
-
-            const textDisplay = el("div", { 
-              style: "font-size:26px; font-weight:800; line-height:1.4; margin:30px 0; min-height:120px; color:var(--text); letter-spacing:-0.01em" 
-            }, line.line);
-            content.appendChild(textDisplay);
-
-            const doneBtn = el("button", { class: "btn big primary", style: "width:100%; padding:20px; font-size:18px", onclick: () => {
-              step++;
-              if (step < dialogue.length) {
-                next();
-              } else {
-                State.incrementConvRepeats(w, d, conv.id);
-                UI.toast("Practice complete! +1 Repeat checked.");
-                close();
-                // We reload or rerender here to show the new check
-                window.location.reload();
-              }
-            }}, step === dialogue.length - 1 ? "Finish Session" : "Next Line →");
-            content.appendChild(doneBtn);
+          if (step >= dialogue.length) {
+            finish();
+            return;
           }
-          next();
+
+          const line = dialogue[step];
+          const isMe = line.who === myRole;
+          const whoName = line.who === 'A' ? roles[0] : roles[1];
+          
+          content.appendChild(el("div", { class: "muted", style: "font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.05em" }, `Line ${step + 1} of ${dialogue.length}`));
+          
+          const turnBadge = el("div", { 
+            style: `padding:6px 16px; border-radius:999px; font-weight:900; font-size:13px; margin-top:8px; background:${isMe ? 'var(--primary)' : 'var(--card-2)'}; color:${isMe ? 'white' : 'var(--text-soft)'}; border:2px solid ${isMe ? 'var(--primary-dark)' : 'var(--border)'}` 
+          }, isMe ? `Your Turn (${line.who}: ${whoName})` : `${line.who}: ${whoName}'s Turn`);
+          content.appendChild(turnBadge);
+
+          const textDisplay = el("div", { 
+            style: "margin: 30px 0; font-size:26px; font-weight:800; line-height:1.4; color:var(--text); min-height:120px; display:flex; align-items:center; justify-content:center; text-align:center" 
+          }, line.line);
+          content.appendChild(textDisplay);
+
+          if (isMe) {
+            content.appendChild(el("button", { 
+              class: "btn big primary", 
+              style: "width:100%; margin-top:20px; padding:20px; font-size:18px", 
+              onclick: async () => {
+                await window.PracticeSync.update({ step: step + 1 });
+              }
+            }, step === dialogue.length - 1 ? "Finish Session" : "I'm Done"));
+          } else {
+            content.appendChild(el("div", { 
+              class: "thinking", 
+              style: "margin-top:20px; justify-content:center; padding:20px; background:var(--card-2); border-color:var(--border)" 
+            }, `Waiting for ${whoName}...`));
+          }
         }
 
-        showRolePicker();
+        function finish() {
+          UI.clear(content);
+          content.appendChild(el("div", { style: "text-align:center; padding:20px" }, [
+            el("div", { style: "font-size:64px; margin-bottom:20px" }, "🎉"),
+            el("h2", null, "Excellent work!"),
+            el("p", { class: "muted" }, "You've completed this practice session together."),
+            el("button", { 
+              class: "btn big primary", 
+              style: "width:100%; margin-top:30px", 
+              onclick: async () => {
+                State.incrementConvRepeats(w, d, conv.id);
+                await window.PracticeSync.clear();
+                close();
+                Speaking.render();
+              }
+            }, "Finish & Close")
+          ]));
+        }
+
+        if (window.PracticeSync) {
+          window.PracticeSync.join(conv.id, onSync);
+        } else {
+          showRolePicker(); 
+        }
+
+        // Cleanup on close
+        const checkClose = setInterval(() => {
+          if (!document.body.contains(m)) {
+            clearInterval(checkClose);
+            if (window.PracticeSync) window.PracticeSync.leave();
+          }
+        }, 1000);
       });
     }
 
