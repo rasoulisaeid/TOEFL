@@ -2,8 +2,10 @@
 window.Views = window.Views || {};
 window.Views.leitner = function (mount) {
   const { el } = UI;
-  UI.clear(mount);
-
+  
+  // Persistence for selection
+  let selectedBoxes = JSON.parse(sessionStorage.getItem("leitner:filter") || "[]"); // empty = due only
+  
   function render() {
     UI.clear(mount);
     const head = el("div", { class: "page-head" }, [
@@ -20,26 +22,67 @@ window.Views.leitner = function (mount) {
     ]);
     mount.appendChild(head);
 
-    // boxes
-    const boxes = State.cardsByBox();
+    // Filter bar
+    const boxesData = State.cardsByBox();
     const intervals = State.LEITNER_INTERVALS;
-    const grid = el("div", { class: "leitner-grid" });
-    boxes.forEach((cards, idx) => {
-      grid.appendChild(el("div", { class: "box-card" }, [
-        el("div", { class: "bn" }, `Box ${idx + 1}`),
-        el("div", { class: "bcount" }, cards.length),
-        el("div", { class: "bint" }, `every ${intervals[idx]} day${intervals[idx] > 1 ? "s" : ""}`),
-      ]));
+    
+    const filterRow = el("div", { class: "leitner-filter-row" });
+    
+    // "Due Today" pseudo-box
+    const dueCount = State.cardsDueToday().length;
+    const isDueOnly = selectedBoxes.length === 0;
+    filterRow.appendChild(makeBoxFilter("Due", dueCount, isDueOnly, () => {
+      selectedBoxes = [];
+      sessionStorage.setItem("leitner:filter", "[]");
+      render();
+    }, "Today's due"));
+
+    boxesData.forEach((cards, idx) => {
+      const boxNum = idx + 1;
+      const active = selectedBoxes.includes(boxNum);
+      filterRow.appendChild(makeBoxFilter(boxNum, cards.length, active, () => {
+        if (selectedBoxes.includes(boxNum)) {
+          selectedBoxes = selectedBoxes.filter(b => b !== boxNum);
+        } else {
+          selectedBoxes.push(boxNum);
+        }
+        sessionStorage.setItem("leitner:filter", JSON.stringify(selectedBoxes));
+        render();
+      }, `every ${intervals[idx]}d`));
     });
-    mount.appendChild(grid);
 
-    const due = State.cardsDueToday();
-    mount.appendChild(el("div", { class: "section-title" }, due.length ? `Today's review · ${due.length} due` : "Nothing due today"));
+    // "All" box
+    const allActive = selectedBoxes.includes("all");
+    filterRow.appendChild(makeBoxFilter("All", State.getCards().length, allActive, () => {
+      if (selectedBoxes.includes("all")) selectedBoxes = [];
+      else selectedBoxes = ["all"];
+      sessionStorage.setItem("leitner:filter", JSON.stringify(selectedBoxes));
+      render();
+    }, "Whole collection"));
 
-    if (due.length) {
+    mount.appendChild(filterRow);
+
+    // Determine review pool
+    let pool = [];
+    let title = "Nothing to review";
+    
+    if (selectedBoxes.length === 0) {
+      pool = State.cardsDueToday();
+      title = pool.length ? `Today's review · ${pool.length} due` : "Nothing due today";
+    } else if (selectedBoxes.includes("all")) {
+      pool = State.getCards();
+      title = `Reviewing all cards · ${pool.length} total`;
+    } else {
+      pool = State.getCards().filter(c => selectedBoxes.includes(c.box));
+      title = `Reviewing Boxes ${selectedBoxes.join(", ")} · ${pool.length} cards`;
+    }
+
+    mount.appendChild(el("div", { class: "section-title" }, title));
+
+    if (pool.length) {
       const review = el("div", { id: "reviewArea" });
       mount.appendChild(review);
-      let queue = due.slice();
+      let queue = pool.slice();
       let idx = 0;
       let revealed = false;
 
@@ -48,8 +91,9 @@ window.Views.leitner = function (mount) {
         if (idx >= queue.length) {
           review.appendChild(el("div", { class: "review-card" }, [
             el("div", { style: "font-size:36px" }, "🎉"),
-            el("div", { class: "word" }, "Done for today"),
-            el("div", { class: "muted" }, `You reviewed ${queue.length} card${queue.length > 1 ? "s" : ""}.`),
+            el("div", { class: "word" }, "Session complete"),
+            el("div", { class: "muted" }, `You finished ${queue.length} card${queue.length > 1 ? "s" : ""}.`),
+            el("button", { class: "btn primary", style: "margin-top:20px", onclick: render }, "Back to start"),
           ]));
           return;
         }
@@ -62,8 +106,8 @@ window.Views.leitner = function (mount) {
           revealed && c.example ? el("div", { class: "example" }, "ex: " + c.example) : null,
           revealed
             ? el("div", { class: "actions" }, [
-                el("button", { class: "btn danger", onclick: () => answer(false) }, "✗ Forgot — back to Box 1"),
-                el("button", { class: "btn primary", onclick: () => answer(true) }, "✓ Got it — promote"),
+                el("button", { class: "btn danger", onclick: () => answer(false) }, "✗ Forgot"),
+                el("button", { class: "btn primary", onclick: () => answer(true) }, "✓ Got it"),
               ])
             : el("div", { class: "actions" }, [
                 el("button", { class: "btn primary", onclick: () => { revealed = true; tick(); } }, "Show answer"),
@@ -72,41 +116,55 @@ window.Views.leitner = function (mount) {
         ]));
       }
       function answer(correct) {
-        State.answerCard(c_id(), correct);
+        State.answerCard(queue[idx].id, correct);
         idx += 1; revealed = false;
         tick();
       }
-      function c_id() { return queue[idx].id; }
       function skip() { idx += 1; revealed = false; tick(); }
       tick();
     }
 
-    // All cards
-    mount.appendChild(el("div", { class: "section-title" }, `All cards (${State.getCards().length})`));
+    // All cards list
+    mount.appendChild(el("div", { class: "section-title" }, `List view` ));
     const list = el("div", { class: "col" });
     State.getCards().slice().reverse().forEach((c) => list.appendChild(cardListItem(c, render)));
-    if (!State.getCards().length) list.appendChild(el("div", { class: "empty" }, "No cards yet. Add words from speaking practice or click '+ Add word'."));
+    if (!State.getCards().length) list.appendChild(el("div", { class: "empty" }, "No cards yet."));
     mount.appendChild(list);
   }
+
+  function makeBoxFilter(label, count, active, onClick, sub) {
+    const b = el("div", { 
+      class: "box-filter-card" + (active ? " active" : ""),
+      onclick: onClick
+    }, [
+      el("div", { class: "bf-label" }, label === "Due" ? "DUE" : (label === "All" ? "ALL" : `B${label}`)),
+      el("div", { class: "bf-count" }, count),
+      el("div", { class: "bf-sub" }, sub)
+    ]);
+    return b;
+  }
+
   render();
 };
 
 function cardListItem(c, refresh) {
-  return UI.el("div", { class: "card compact row" }, [
-    UI.el("div", null, [
-      UI.el("div", null, [UI.el("b", null, c.word), c.pos ? UI.el("span", { class: "muted", style: "margin-left:6px;font-size:12px" }, c.pos) : null]),
-      UI.el("div", { class: "muted", style: "font-size:13px" }, c.meaning),
+  const { el } = UI;
+  return el("div", { class: "card compact row" }, [
+    el("div", null, [
+      el("div", null, [el("b", null, c.word), c.pos ? el("span", { class: "muted", style: "margin-left:6px;font-size:12px" }, c.pos) : null]),
+      el("div", { class: "muted", style: "font-size:13px" }, c.meaning),
     ]),
-    UI.el("span", { class: "spacer" }),
-    UI.el("span", { class: "chip muted" }, `Box ${c.box}`),
-    UI.el("span", { class: "chip muted" }, `due ${c.nextDue}`),
-    UI.el("button", { class: "btn sm danger", onclick: () => {
-      UI.confirmDialog("Delete card?", `Remove "${c.word}" from Leitner?`, () => {
-        const cards = State.getCards().filter((x) => x.id !== c.id);
-        State.setCards(cards);
-        refresh();
-      });
-    }}, "Delete"),
+    el("span", { class: "spacer" }),
+    el("div", { class: "row", style: "gap:10px" }, [
+      el("span", { class: "chip sm muted" }, `Box ${c.box}`),
+      el("button", { class: "btn icon sm", onclick: () => {
+        if (confirm(`Delete "${c.word}"?`)) {
+          const cards = State.getCards().filter(x => x.id !== c.id);
+          State.setCards(cards);
+          refresh();
+        }
+      }}, "🗑️")
+    ])
   ]);
 }
 

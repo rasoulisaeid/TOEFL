@@ -1349,26 +1349,38 @@ main {
 /* ============================================================
    LEITNER
    ============================================================ */
-.leitner-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+.leitner-filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
 }
-@media (max-width: 1100px) { .leitner-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .leitner-grid { grid-template-columns: 1fr; } }
-.box-card {
-  padding: 18px;
+.box-filter-card {
+  flex: 1;
+  min-width: 80px;
+  max-width: 120px;
+  padding: 12px 10px;
   background: var(--card);
   border: 2px solid var(--border);
-  border-bottom-width: 5px;
-  border-radius: var(--r-lg);
-  display: flex; flex-direction: column; gap: 4px;
-  transition: transform .1s;
+  border-bottom-width: 4px;
+  border-radius: var(--r-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  user-select: none;
 }
-.box-card:hover { transform: translateY(-2px); }
-.box-card .bn { font-size: 11px; color: var(--primary); font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; }
-.box-card .bcount { font-size: 36px; font-weight: 900; line-height: 1; letter-spacing: -0.02em; }
-.box-card .bint { font-size: 12px; color: var(--muted); font-weight: 700; }
+.box-filter-card:hover { transform: translateY(-2px); border-color: var(--primary-soft); }
+.box-filter-card.active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  border-bottom-width: 4px;
+  transform: translateY(1px);
+}
+.box-filter-card .bf-label { font-size: 10px; font-weight: 900; color: var(--primary-dark); opacity: 0.7; letter-spacing: 0.05em; }
+.box-filter-card .bf-count { font-size: 22px; font-weight: 900; line-height: 1.2; }
+.box-filter-card .bf-sub { font-size: 10px; color: var(--muted); font-weight: 700; }
+.box-filter-card.active .bf-label { opacity: 1; }
 
 .review-card {
   margin-top: 18px;
@@ -1687,9 +1699,7 @@ main {
   .mcq-summary .big-score { font-size: 44px; }
   .mcq-summary .msg { font-size: 15px; }
 
-  .leitner-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .box-card { padding: 12px; }
-  .box-card .bcount { font-size: 26px; }
+  .audio-speed button { padding: 5px 9px; font-size: 12px; }
 
   .review-card { padding: 24px 16px; min-height: 220px; }
   .review-card .word { font-size: 32px; }
@@ -1715,7 +1725,6 @@ main {
 /* Tiny phone (≤380) */
 @media (max-width: 380px) {
   .stat-row { grid-template-columns: 1fr; }
-  .leitner-grid { grid-template-columns: repeat(2, 1fr); }
   .reading-tabs button .cat-icon { display: none; }
 }
 
