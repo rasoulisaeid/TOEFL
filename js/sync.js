@@ -42,10 +42,11 @@
     const el = document.getElementById("syncStatus");
     if (!el) return;
     const map = {
-      synced: ["☁️", "Synced",     "synced"],
-      saving: ["⟳",  "Saving…",    "syncing"],
-      error : ["⚠️", "Sync error", "error"],
-      loading:["⟳",  "Loading…",   "syncing"],
+      synced:  ["☁️", "Synced",      "synced"],
+      saving:  ["⟳",  "Saving…",     "syncing"],
+      error :  ["⚠️", "Sync error",  "error"],
+      loading: ["⟳",  "Loading…",    "syncing"],
+      offline: ["📡", "Offline",     "error"],
     };
     const [icon, label, cls] = map[s] || ["☁️", s, "synced"];
     el.textContent = `${icon} ${label}`;
@@ -54,8 +55,22 @@
     el.style.cursor = "default";
   }
 
+  window.addEventListener("online", () => {
+    console.log("🌐 Back online, retrying sync...");
+    pullOnce();
+    subscribeSSE();
+  });
+  window.addEventListener("offline", () => {
+    console.log("📡 Offline");
+    setStatus("offline");
+  });
+
   /* ── Push: local → Firebase (debounced 800ms) ──────── */
   function schedulePush() {
+    if (!navigator.onLine) {
+      setStatus("offline");
+      return;
+    }
     clearTimeout(pushTimer);
     pushTimer = setTimeout(async () => {
       const data   = readLocal();
@@ -86,6 +101,10 @@
 
   /* ── Pull: Firebase → local (one-time on load) ─────── */
   async function pullOnce() {
+    if (!navigator.onLine) {
+      setStatus("offline");
+      return;
+    }
     setStatus("loading");
     try {
       const res = await fetch(apiUrl());
@@ -94,6 +113,11 @@
       if (remote && remote.payload) {
         writeLocal(remote.payload);
         lastPushed = JSON.stringify(remote.payload);
+        // Refresh current view
+        if (window.location.hash) {
+          const ev = new HashChangeEvent("hashchange");
+          window.dispatchEvent(ev);
+        }
       }
       setStatus("synced");
     } catch (e) {
@@ -104,6 +128,7 @@
 
   /* ── Real-time: SSE stream from Firebase ───────────── */
   function subscribeSSE() {
+    if (!navigator.onLine) return;
     if (evtSource) evtSource.close();
     evtSource = new EventSource(apiUrl());
 
