@@ -1295,6 +1295,34 @@ main {
   font-weight: 600;
   animation: slide-up .25s ease;
 }
+.mcq-explain.review { margin-top: 10px; font-size: 13.5px; opacity: 0.9; }
+
+/* Review Mode */
+.mcq-review-header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+.mcq-review-header h3 { margin: 0; font-size: 18px; }
+.mcq-review-list { display: flex; flex-direction: column; gap: 32px; max-height: 70vh; overflow-y: auto; padding-right: 12px; }
+.mcq-review-item { padding-bottom: 32px; border-bottom: 1.5px dashed var(--border); }
+.mcq-review-item:last-child { border-bottom: none; }
+.mcq-review-item .q-num { font-size: 12px; font-weight: 900; color: var(--primary); text-transform: uppercase; margin-bottom: 6px; }
+.mcq-review-item .q-text { font-size: 17px; font-weight: 700; margin-bottom: 16px; line-height: 1.4; }
+.mcq-review-item .q-opts { display: flex; flex-direction: column; gap: 8px; }
+.q-opt-preview {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  border-radius: 12px; border: 1.5px solid var(--border); background: var(--card-2);
+  font-size: 14.5px; font-weight: 600; position: relative;
+}
+.q-opt-preview.correct { border-color: var(--green); background: var(--green-soft); color: var(--green-dark); }
+.q-opt-preview.wrong { border-color: var(--red); background: var(--red-soft); color: var(--red-dark); }
+.q-opt-preview .badge {
+  margin-left: auto; font-size: 9px; font-weight: 900; padding: 3px 8px;
+  border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.q-opt-preview.correct .badge { background: var(--green-dark); color: white; }
+.q-opt-preview.wrong .badge { background: var(--red-dark); color: white; }
+.q-opt-preview .letter {
+  width: 26px; height: 26px; display: grid; place-items: center;
+  border-radius: 8px; background: rgba(0,0,0,0.05); font-weight: 900; font-size: 13px;
+}
 .mcq-explain.wrong {
   background: var(--orange-soft);
   border-color: rgba(255,150,0,.35);

@@ -173,6 +173,10 @@
         UI.el("div", { class: "msg" }, msg),
         UI.el("div", { class: "row", style: "justify-content:center;margin-top:20px;gap:12px" }, [
           UI.el("button", {
+            class: "btn ghost",
+            onclick: () => renderReview(),
+          }, "Review Questions"),
+          UI.el("button", {
             class: "btn primary",
             onclick: () => {
               state.current = 0; state.answers = []; state.tries = {}; state.completed = false; save();
@@ -181,6 +185,75 @@
           }, "Restart Quiz"),
         ]),
       ]));
+    }
+
+    function renderReview() {
+      UI.clear(card);
+      card.appendChild(UI.el("div", { class: "mcq-review-header" }, [
+        UI.el("h3", { text: "Quiz Review" }),
+        UI.el("span", { class: "spacer" }),
+        UI.el("button", { class: "btn sm ghost", text: "Back to summary", onclick: renderSummary })
+      ]));
+
+      const list = UI.el("div", { class: "mcq-review-list" });
+      opts.questions.forEach((q, idx) => {
+        const firstTry = state.answers[idx];
+        const triedIndices = state.tries[idx] || [];
+        const isCorrect = firstTry === q.correct;
+
+        const qItem = UI.el("div", { class: "mcq-review-item" }, [
+          UI.el("div", { class: "q-num" }, `Question ${idx + 1}`),
+          UI.el("div", { class: "q-text", text: q.q }),
+          UI.el("div", { class: "q-opts" }, q.opts.map((opt, i) => {
+            let cls = "q-opt-preview";
+            if (i === q.correct) cls += " correct";
+            if (i === firstTry && i !== q.correct) cls += " wrong";
+            
+            return UI.el("div", { class: cls }, [
+              UI.el("span", { class: "letter", text: ["A","B","C","D","E"][i] }),
+              UI.el("span", { text: opt }),
+              i === firstTry ? UI.el("span", { class: "badge", text: "YOUR FIRST TRY" }) : null,
+              i === q.correct && i !== firstTry ? UI.el("span", { class: "badge", text: "CORRECT ANSWER" }) : null,
+            ]);
+          })),
+          UI.el("div", { class: "mcq-explain review", text: q.explanation })
+        ]);
+        list.appendChild(qItem);
+      });
+      card.appendChild(list);
+    }
+
+    function renderProgress() {
+      const dots = UI.el("div", { class: "dots" });
+      for (let i = 0; i < total; i++) {
+        const span = UI.el("button", {
+          class: "dot-btn" + (state.answers[i] != null ? " done" : "") + (i === state.current ? " cur" : ""),
+          onclick: () => {
+            state.current = i;
+            save();
+            renderQ();
+          }
+        });
+        dots.appendChild(span);
+      }
+      return UI.el("div", { class: "mcq-progress" }, [
+        UI.el("span", { class: "muted", style: "font-size:13px" }, `Question ${Math.min(state.current + 1, total)} of ${total}`),
+        UI.el("button", { 
+          class: "btn sm ghost", 
+          style: "margin-left:8px;font-size:11px;padding:2px 6px;height:auto",
+          onclick: () => {
+            state.current = 0; state.answers = []; state.tries = {}; state.completed = false; save();
+            renderQ();
+          }
+        }, "Reset"),
+        UI.el("button", { 
+          class: "btn sm ghost", 
+          style: "margin-left:6px;font-size:11px;padding:2px 6px;height:auto",
+          onclick: () => renderReview()
+        }, "Review"),
+        UI.el("span", { class: "spacer" }),
+        dots,
+      ]);
     }
 
     renderQ();
