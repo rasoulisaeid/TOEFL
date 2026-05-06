@@ -298,11 +298,11 @@ function buildScramble(w, d, task) {
     task.intro ? el("div", { class: "muted", style: "margin-bottom:6px" }, task.intro) : null,
   ]));
 
-  const stateKey = `scramble:${task.id}`;
-  const state = Storage.get(stateKey, {
-    chosen: task.phrases.map(() => []), // per-phrase: [chipIdx in scrambled order]
-    solved: task.phrases.map(() => false),
-  });
+  const stored = Storage.get(stateKey, {});
+  const state = {
+    chosen: task.phrases.map((_, i) => (stored.chosen && stored.chosen[i]) || []),
+    solved: task.phrases.map((_, i) => (stored.solved && stored.solved[i]) || false),
+  };
   function save() { Storage.set(stateKey, state); }
 
   const list = el("div", { class: "scramble-list" });
