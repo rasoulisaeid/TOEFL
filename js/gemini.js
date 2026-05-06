@@ -104,8 +104,10 @@ window.Gemini = (function() {
      */
     async generateDistractors(words) {
       const unique = [...new Set(words.map(w => w.toLowerCase()))];
+      const randomSeed = Math.random().toString(36).slice(2, 7);
       const prompt = [
         `You are creating a listening dictation exercise. For each word, provide ONE real English word that SOUNDS SIMILAR (similar pronunciation/phonetics) but is a DIFFERENT word.`,
+        `Variation seed: ${randomSeed}. Try to be creative and provide different distractors than common defaults if possible.`,
         ``,
         `Rules:`,
         `- Every distractor MUST be a real English dictionary word`,
@@ -118,7 +120,7 @@ window.Gemini = (function() {
         `Return JSON: {"word": "distractor", ...} — all lowercase.`,
       ].join("\n");
       try {
-        const result = await callJSON(prompt, { temperature: 0.4, model: "gemini-3-pro-preview" });
+        const result = await callJSON(prompt, { temperature: 1.0, model: "gemini-3-pro-preview" });
         if (result && typeof result === "object" && !result._raw) return result;
         return {};
       } catch (e) {
