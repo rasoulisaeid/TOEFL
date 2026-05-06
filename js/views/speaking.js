@@ -101,16 +101,14 @@ window.Views.speaking = function (mount, params) {
         function showRolePicker() {
           UI.clear(content);
           content.appendChild(el("h2", { style: "margin:0" }, "Choose your role"));
-          content.appendChild(el("div", { class: "muted" }, "Which part will you speak? Your partner will take the other."));
+          content.appendChild(el("div", { class: "muted" }, "Which part will you speak?"));
           
           const btns = el("div", { class: "row", style: "gap:12px; width:100%" }, [
             el("button", { class: "btn big primary", style: "flex:1; padding:30px 10px", onclick: () => startPractice(0) }, [
-              el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, "Role A"),
-              el("div", { style: "font-size:18px; font-weight:900" }, roles[0])
+              el("div", { style: "font-size:24px; font-weight:900" }, "Role A")
             ]),
             el("button", { class: "btn big primary", style: "flex:1; padding:30px 10px", onclick: () => startPractice(1) }, [
-              el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, "Role B"),
-              el("div", { style: "font-size:18px; font-weight:900" }, roles[1])
+              el("div", { style: "font-size:24px; font-weight:900" }, "Role B")
             ])
           ]);
           content.appendChild(btns);
@@ -124,13 +122,12 @@ window.Views.speaking = function (mount, params) {
             UI.clear(content);
             const line = dialogue[step];
             const isMe = (line.who === 'A' && myRoleIdx === 0) || (line.who === 'B' && myRoleIdx === 1);
-            const whoName = line.who === 'A' ? roles[0] : roles[1];
-
+            
             content.appendChild(el("div", { class: "muted", style: "font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.05em" }, `Line ${step + 1} of ${dialogue.length}`));
             
             const turnBadge = el("div", { 
               style: `padding:6px 16px; border-radius:999px; font-weight:900; font-size:13px; margin-top:8px; background:${isMe ? 'var(--primary)' : 'var(--card-2)'}; color:${isMe ? 'white' : 'var(--text-soft)'}; border:2px solid ${isMe ? 'var(--primary-dark)' : 'var(--border)'}` 
-            }, isMe ? "Your Turn!" : `${whoName}'s Turn`);
+            }, isMe ? "Your Turn (Role " + line.who + ")" : "Role " + line.who + "'s Turn");
             content.appendChild(turnBadge);
 
             const textDisplay = el("div", { 
