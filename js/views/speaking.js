@@ -75,8 +75,20 @@ window.Views.speaking = function (mount, params) {
             el("div", { style: "font-weight:900; font-size:15px; letter-spacing:-0.01em" }, "Practice Progress"),
             el("div", { class: "muted", style: "font-size:12px; margin-top:2px" }, "Complete 4 repeats to master this conversation"),
           ]),
-          el("button", { class: "btn primary sm", onclick: () => openPracticeModal() }, [
-            el("span", { style: "margin-right:6px" }, "▶"), "Practice Mode"
+          el("div", { class: "row", style: "gap:8px" }, [
+            el("button", { 
+              class: "btn ghost sm icon", 
+              title: "Reset Progress",
+              onclick: () => {
+                if (confirm("Reset practice repeats for this task?")) {
+                  State.setConvRepeats(w, d, conv.id, 0);
+                  Speaking.render();
+                }
+              }
+            }, "↺"),
+            el("button", { class: "btn primary sm", onclick: () => openPracticeModal() }, [
+              el("span", { style: "margin-right:6px" }, "▶"), "Practice Mode"
+            ])
           ])
         ]),
         el("div", { class: "repeat-checks", style: "display:flex; gap:12px; margin-top:16px" }, [1, 2, 3, 4].map(i => {
@@ -106,18 +118,20 @@ window.Views.speaking = function (mount, params) {
         let myRole = null; 
 
         function onSync(data) {
-          // If we have data, merge it into our local session state
           if (data) {
             if (data.roles) session.roles = { ...session.roles, ...data.roles };
             if (data.step !== undefined) session.step = data.step;
+            
+            // Detect remote finish
+            if (data.finished && !session.finished) {
+              session.finished = true;
+              finish(true); // true means remote triggered
+              return;
+            }
           }
           
-          // Always render something so the modal isn't empty
-          if (myRole === null) {
-            showRolePicker();
-          } else {
-            renderStep();
-          }
+          if (myRole === null) showRolePicker();
+          else renderStep();
         }
 
         function showRolePicker() {
@@ -209,22 +223,29 @@ window.Views.speaking = function (mount, params) {
           }
         }
 
-        function finish() {
+        function finish(remoteTriggered = false) {
           UI.clear(content);
           content.appendChild(el("div", { style: "text-align:center; padding:20px" }, [
             el("div", { style: "font-size:64px; margin-bottom:20px" }, "🎉"),
             el("h2", null, "Excellent work!"),
-            el("p", { class: "muted" }, "You've completed this practice session together."),
+            el("p", { class: "muted" }, remoteTriggered ? "Your partner finished the session." : "You've completed this practice session together."),
             el("button", { 
               class: "btn big primary", 
               style: "width:100%; margin-top:30px", 
               onclick: async () => {
-                State.incrementConvRepeats(w, d, conv.id);
-                await window.PracticeSync.clear();
+                if (!remoteTriggered) {
+                  State.incrementConvRepeats(w, d, conv.id);
+                  await window.PracticeSync.update({ finished: true });
+                }
+                // Delay clearing slightly to let SSE reach the other side if they are slow
+                setTimeout(() => {
+                   if (!remoteTriggered) window.PracticeSync.clear();
+                }, 1000);
+                
                 close();
                 Speaking.render();
               }
-            }, "Finish & Close")
+            }, remoteTriggered ? "Close" : "Finish & Close")
           ]));
         }
 
