@@ -447,21 +447,6 @@ window.Views.imageStory = function (mount, params) {
       }
 
       if (window.PracticeSync) {
-        window.PracticeSync.join(story.id + ":story", onSync);
-        onSync(null); 
-      } else {
-        showRolePicker(); 
-      }
-
-      const checkClose = setInterval(() => {
-        if (!document.body.contains(m)) {
-          clearInterval(checkClose);
-          if (window.PracticeSync) window.PracticeSync.leave();
-        }
-      }, 1000);
-    });
-  }
-
       if (window.PracticeSync) {
         window.PracticeSync.join(story.id + ":story", onSync);
         onSync(null); 
