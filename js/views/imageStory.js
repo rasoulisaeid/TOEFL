@@ -447,7 +447,6 @@ window.Views.imageStory = function (mount, params) {
       }
 
       if (window.PracticeSync) {
-      if (window.PracticeSync) {
         window.PracticeSync.join(story.id + ":story", onSync);
         onSync(null); 
       } else {
