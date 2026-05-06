@@ -27,9 +27,8 @@ window.Views.speaking = function (mount, params) {
     function dialogueBlock() {
       const wrap = el("div", { class: "dialogue" });
       (conv.dialogue || []).forEach((line) => {
-        const whoName = (line.who === "A") ? (conv.roles && conv.roles[0]) : (conv.roles && conv.roles[1]);
         const lineEl = el("div", { class: `line ${line.who}` }, [
-          el("div", { class: "who" }, whoName || line.who),
+          el("div", { class: "who" }, line.who),
           el("div", { class: "what" }, line.line),
         ]);
         wrap.appendChild(lineEl);
