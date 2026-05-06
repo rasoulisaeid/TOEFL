@@ -96,7 +96,7 @@
   function updateAIStatus() {
     const icon = document.getElementById("aiStatusIcon");
     if (!icon) return;
-    const curKey = Storage.get("gemini:key", "");
+    const curKey = localStorage.getItem("gemini:key") || "";
     const isSet = curKey && curKey.length > 10;
     
     if (isSet) {
@@ -113,7 +113,7 @@
   // AI Settings Modal
   document.getElementById("openSettings")?.addEventListener("click", () => {
     UI.modal((m, close) => {
-      const curKey = Storage.get("gemini:key", "");
+      const curKey = localStorage.getItem("gemini:key") || "";
       const isSet = curKey && curKey.length > 10;
       const masked = isSet ? (curKey.slice(0, 4) + "..." + curKey.slice(-4)) : "Not set";
       
@@ -147,7 +147,7 @@
       
       const doSave = () => {
         const val = input.value.trim();
-        Storage.set("gemini:key", val);
+        localStorage.setItem("gemini:key", val);
         saveBtn.textContent = "✓ Saved!";
         saveBtn.style.background = "var(--green)";
         UI.toast(val ? "Key saved! App refreshing..." : "Key cleared.");

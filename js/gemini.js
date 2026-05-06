@@ -5,7 +5,7 @@ window.Gemini = (function() {
 
   function getKey() {
     const configKey = (window.CONFIG && window.CONFIG.GEMINI_API_KEY) || "";
-    const stored = (window.Storage && Storage.get) ? Storage.get("gemini:key") : null;
+    const stored = localStorage.getItem("gemini:key");
     const final = (stored && typeof stored === "string" && stored.trim() !== "") ? stored : configKey;
     
     if (!final && !window._keyWarned) {
