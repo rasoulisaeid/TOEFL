@@ -54,7 +54,7 @@
         if (!wk || !wk.days) continue;
         Object.keys(wk.days).forEach(dNum => {
           const day = wk.days[dNum];
-          if (!day.tasks) return;
+          if (!day || !day.tasks) return;
           Object.keys(day.tasks).forEach(tid => {
             const t = day.tasks[tid];
             if (!t) return;
