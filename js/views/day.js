@@ -1,4 +1,4 @@
-/* Day view — together (1h) + solo (2h) tabs */
+/* Day view */
 window.Views = window.Views || {};
 window.Views.day = function (mount, params) {
   const { el } = UI;
@@ -14,8 +14,6 @@ window.Views.day = function (mount, params) {
 
   UI.clear(mount);
 
-  let activeSlot = sessionStorage.getItem("daySlot:" + w + ":" + d) || "together";
-
   const head = el("div", { class: "page-head" }, [
     el("div", null, [
       el("div", { class: "breadcrumb" }, [
@@ -30,68 +28,39 @@ window.Views.day = function (mount, params) {
     ]),
   ]);
   mount.appendChild(head);
-
-  // Tabs
-  const tabs = el("div", { class: "day-tabs" }, [
-    el("button", { class: activeSlot === "together" ? "active" : "", onclick: () => switchTab("together") }, "Together · 1h"),
-    el("button", { class: activeSlot === "solo" ? "active" : "", onclick: () => switchTab("solo") }, "Solo · 2h"),
-  ]);
-  mount.appendChild(tabs);
-
-  const body = el("div", { id: "dayBody" });
-  mount.appendChild(body);
-  render();
-
-  function switchTab(slot) {
-    activeSlot = slot;
-    sessionStorage.setItem("daySlot:" + w + ":" + d, slot);
-    Array.from(tabs.children).forEach((b, i) => {
-      b.classList.toggle("active", (i === 0 && slot === "together") || (i === 1 && slot === "solo"));
-    });
-    render();
-  }
-
-  function render() {
-    UI.clear(body);
-    body.appendChild(slotContent(w, d, dayContent, readingDay, listeningDay, writingDay, activeSlot));
-  }
+  mount.appendChild(slotContent(w, d, dayContent, readingDay, listeningDay, writingDay));
 };
 
-function slotContent(w, d, dayContent, readingDay, listeningDay, writingDay, slot) {
+function slotContent(w, d, dayContent, readingDay, listeningDay, writingDay) {
   const { el } = UI;
   const wrap = el("div", null);
 
-  const conv = dayContent.conversations.find((c) => c.slot === slot);
-  const story = dayContent.stories.find((s) => s.slot === slot);
-  const speakingMin = 30;
+  const conv1 = dayContent.conversations.find((c) => c.slot === "together");
+  const conv2 = dayContent.conversations.find((c) => c.slot === "solo");
+  const story1 = dayContent.stories.find((s) => s.slot === "together");
+  const story2 = dayContent.stories.find((s) => s.slot === "solo");
 
   // ---- Speaking
-  wrap.appendChild(el("div", { class: "section-title" }, slot === "together" ? "Speaking together · 30 min" : "Speaking solo · 30 min"));
+  wrap.appendChild(el("div", { class: "section-title" }, "Speaking · 60 min"));
 
   wrap.appendChild(el("div", { class: "skill-block sp" }, [
     el("div", { class: "head" }, [
       el("div", { class: "icon" }, "🎙️"),
       el("div", null, [
         el("h3", null, "Speaking"),
-        el("div", { class: "meta" }, `${speakingMin} minutes — 1 conversation + 1 image story`),
+        el("div", { class: "meta" }, "60 minutes — 2 conversations + 2 image stories"),
       ]),
     ]),
     el("div", { class: "tasks" }, [
-      taskRow(w, d, conv.id, `Conversation: ${conv.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/speaking/${slot}/conv`),
-      taskRow(w, d, story.id, `Image story: ${story.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/story/${slot}`),
+      conv1 ? taskRow(w, d, conv1.id, `Conv 1: ${conv1.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/speaking/together/conv`) : null,
+      conv2 ? taskRow(w, d, conv2.id, `Conv 2: ${conv2.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/speaking/solo/conv`) : null,
+      story1 ? taskRow(w, d, story1.id, `Image 1: ${story1.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/story/together`) : null,
+      story2 ? taskRow(w, d, story2.id, `Image 2: ${story2.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/story/solo`) : null,
     ]),
   ]));
 
-  // ---- Together: vocab/writing micro-task placeholder | Solo: full reading & listening
-  if (slot === "together") {
-    wrap.appendChild(el("div", { class: "section-title" }, "Together · vocabulary & writing · 30 min"));
-    const tg = el("div", { class: "skill-grid" });
-    tg.appendChild(placeholderSkill("v",  "Vocabulary review", "📚", "15 min", "Run through Leitner cards together — short and warm. (Leitner page is live.)", () => location.hash = "#/leitner"));
-    tg.appendChild(placeholderSkill("wr", "Writing",            "✍️", "15 min", "Mini-writing prompt arrives soon."));
-    wrap.appendChild(tg);
-  } else {
-    // SOLO ↓ Reading + Listening + (writing/vocab placeholders)
-    wrap.appendChild(el("div", { class: "section-title" }, "Reading · 30 min"));
+  // ---- Reading
+  wrap.appendChild(el("div", { class: "section-title" }, "Reading · 30 min"));
     wrap.appendChild(el("div", { class: "skill-block rd" }, [
       el("div", { class: "head" }, [
         el("div", { class: "icon" }, "📖"),
@@ -170,7 +139,6 @@ function slotContent(w, d, dayContent, readingDay, listeningDay, writingDay, slo
       ]),
     ]);
     wrap.appendChild(card);
-  }
 
   // Self-rating + notes
   wrap.appendChild(el("div", { class: "section-title" }, "How was today?"));

@@ -1,6 +1,6 @@
 /* Gemini API integration for word analysis + writing refinement */
 window.Gemini = (function() {
-  const MODEL = "gemini-3-pro-preview";
+  const MODEL = "gemini-3.1-pro-preview";
   const FALLBACK_MODELS = ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
 
   function getKey() {
@@ -113,29 +113,32 @@ window.Gemini = (function() {
      */
     async generateDistractors(words, exclude = {}) {
       const unique = [...new Set(words.map(w => w.toLowerCase()))];
-      const randomSeed = Math.random().toString(36).slice(2, 7);
-      
-      let excludeText = "";
+      const randomSeed = Math.random().toString(36).slice(2, 10) + "-" + Date.now().toString(36);
+
+      let excludeSection = "";
       if (Object.keys(exclude).length > 0) {
-        excludeText = `IMPORTANT: Provide DIFFERENT distractors than these previous ones if possible: ${JSON.stringify(exclude)}.`;
+        const lines = Object.entries(exclude).map(([w, d]) => `  "${w}": must NOT use "${d}"`).join("\n");
+        excludeSection = `\nMANDATORY CONSTRAINT — for these words you MUST choose a DIFFERENT distractor than the one listed below. Using the same distractor again is wrong:\n${lines}\n`;
       }
 
       const prompt = [
-        `You are creating a listening dictation exercise. For each word, provide ONE real English word that SOUNDS SIMILAR (similar pronunciation/phonetics) but is a DIFFERENT word.`,
-        `Variation seed: ${randomSeed}. ${excludeText}`,
-        `Try to be creative and provide fresh, distinct distractors. Avoid obvious or repeating ones.`,
+        `Task: dictation exercise distractors. Session token: ${randomSeed}.`,
         ``,
+        `For each word give ONE real English word that SOUNDS SIMILAR (rhyme / near-homophone / minimal phonetic change) but means something different.`,
+        excludeSection,
         `Rules:`,
-        `- Every distractor MUST be a real English dictionary word`,
-        `- Focus on SIMILAR PRONUNCIATION, rhyming, or minimal sound changes`,
-        `- Examples: "coffee" → "toffee", "drank" → "frank", "morning" → "mourning", "started" → "charted"`,
-        `- NEVER invent fake words. Every word must exist in an English dictionary.`,
+        `- Must be a real dictionary word`,
+        `- Must sound similar to the target (same vowel sound, rhyme, or 1–2 phoneme swap)`,
+        `- Examples: "coffee"→"toffee", "morning"→"mourning", "drank"→"frank", "started"→"charted"`,
+        `- Never invent words`,
+        `- Be varied and creative — avoid the most obvious choice when alternatives exist`,
         ``,
         `Words: ${unique.join(", ")}`,
         ``,
-        `Return JSON: {"word": "distractor", ...} — all lowercase.`,
-      ].join("\n");
-      const result = await callJSON(prompt, { temperature: 1.0, model: "gemini-3-pro-preview" });
+        `Return ONLY a JSON object: {"word": "distractor", ...} all lowercase.`,
+      ].filter(s => s !== null).join("\n");
+
+      const result = await callJSON(prompt, { temperature: 1.0, model: "gemini-3.1-pro-preview" });
       if (result && typeof result === "object" && !result._raw) return result;
       throw new Error("Invalid response format from Gemini");
     },
