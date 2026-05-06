@@ -296,31 +296,40 @@ function buildDictationCard(t) {
   const card = el("div", { class: "card dictation-card" });
   const storageKey = `dictation:v3:${t.id}`;
   const cacheKey = `dictation:distractors:v3:${t.id}`;
+  const blankCacheKey = `dictation:blanks:v3:${t.id}`;
 
   const tokens = tokenizeForDictation(t.text);
-  const blankIndices = selectBlanks(tokens);
-  const blankedWords = tokens.filter(tk => blankIndices.has(tk.idx)).map(tk => tk.clean);
 
   function loadAndRender() {
     let state = Storage.get(storageKey) || {};
     if (!state.answers) state.answers = {};
-    const cached = Storage.get(cacheKey, null);
+    
+    let blankIndicesArray = Storage.get(blankCacheKey, null);
+    if (!blankIndicesArray) {
+      const bSet = selectBlanks(tokens);
+      blankIndicesArray = Array.from(bSet);
+      Storage.set(blankCacheKey, blankIndicesArray);
+    }
+    const blankIndices = new Set(blankIndicesArray);
+    const blankedWords = tokens.filter(tk => blankIndices.has(tk.idx)).map(tk => tk.clean);
+    
+    const cachedDistractors = Storage.get(cacheKey, null);
 
-    if (cached) {
-      renderDictation(body, tokens, blankIndices, cached, state, storageKey, cacheKey, loadAndRender);
+    if (cachedDistractors) {
+      renderDictation(body, tokens, blankIndices, cachedDistractors, state, storageKey, cacheKey, blankCacheKey, loadAndRender);
     } else {
       UI.clear(body);
-      body.appendChild(el("div", { class: "thinking" }, "Generating exercise with Gemini Pro..."));
-      const t = UI.toast("Generating exercise...", 0);
+      body.appendChild(el("div", { class: "thinking" }, "Generating fresh exercise with Gemini Pro..."));
+      const toast = UI.toast("Generating exercise...", 0);
       Gemini.generateDistractors(blankedWords).then(distractors => {
         Storage.set(cacheKey, distractors);
         UI.clear(body);
-        renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, loadAndRender);
+        renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, blankCacheKey, loadAndRender);
       }).catch(err => {
         UI.clear(body);
         body.appendChild(el("div", { class: "muted", style: "text-align:center;padding:20px" }, "Failed to generate exercise. " + (err.message || "")));
       }).finally(() => {
-        t.dismiss();
+        toast.dismiss();
       });
     }
   }
@@ -337,7 +346,7 @@ function buildDictationCard(t) {
   return card;
 }
 
-function renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, reloadFn) {
+function renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, blankCacheKey, reloadFn) {
   const { el } = UI;
   UI.clear(body);
 
@@ -375,17 +384,17 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
       UI.toast("🎉 Dictation complete!");
     }
   }
-
   body.appendChild(el("div", { class: "row", style: "margin-bottom:14px;flex-wrap:wrap;gap:8px" }, [
     scoreLabel, el("span", { class: "spacer" }), scoreBar,
     el("button", { class: "btn sm ghost", onclick: () => {
       state.answers = {};
       state.completed = false;
       Storage.set(storageKey, state);
-      renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, reloadFn);
+      renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, blankCacheKey, reloadFn);
     }}, "Reset"),
     el("button", { class: "btn sm ghost", onclick: () => {
       Storage.set(cacheKey, null);
+      Storage.set(blankCacheKey, null);
       state.answers = {};
       state.completed = false;
       Storage.set(storageKey, state);
