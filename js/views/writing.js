@@ -615,14 +615,12 @@ function buildGuided(w, d, task) {
   layout.appendChild(sidebar);
   wrap.appendChild(layout);
 
-  // Final paragraph
+  // Final buttons
   const finalCard = el("div", { class: "guided-final", style: "display:none" }, [
-    el("h3", null, "Your paragraph 🌟"),
-    el("div", { class: "final-text", id: "guided-final-text" }, ""),
     el("div", { class: "row", style: "margin-top:14px;justify-content:flex-end;gap:10px" }, [
-      el("button", { class: "btn", text: "📋 Copy", onclick: () => {
-        const t = document.getElementById("guided-final-text").textContent;
-        navigator.clipboard.writeText(t).then(() => UI.toast("Copied"));
+      el("button", { class: "btn", text: "📋 Copy result", onclick: () => {
+        const t = sidebarText.innerText;
+        navigator.clipboard.writeText(t).then(() => UI.toast("Copied paragraph to clipboard"));
       }}),
       el("button", { class: "btn success", text: "Mark complete ✓", onclick: () => {
         State.setTaskDone(w, d, task.id, true);
@@ -766,11 +764,6 @@ function buildGuided(w, d, task) {
     // Show final card if all steps accepted
     const allDone = state.steps.every((s) => s.accepted);
     finalCard.style.display = allDone ? "" : "none";
-    if (allDone) {
-      const txt = state.steps.map((s) => s.draft.trim()).filter(Boolean).join(" ");
-      const final = document.getElementById("guided-final-text");
-      if (final) final.textContent = txt;
-    }
     // Show prior refined blocks
     const stepNodes = wrap.querySelectorAll(".guided-step");
     stepNodes.forEach((node) => {
