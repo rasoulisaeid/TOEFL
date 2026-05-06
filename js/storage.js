@@ -44,6 +44,9 @@
     clearAll() {
       localStorage.removeItem(KEY);
     },
+    getAll() {
+      return readAll();
+    },
     exportJSON() {
       return JSON.stringify(readAll(), null, 2);
     },

@@ -43,28 +43,34 @@
     },
     migrateXP() {
       // One-time migration to account for past done tasks
-      if (Storage.get("xp_migrated", false)) return;
+      if (Storage.get("xp_migrated_v2", false)) return;
       
       let total = 0;
-      // Scan all weeks
+      const allData = Storage.getAll();
+
+      // 1. Scan all weeks for core tasks
       for (let w = 1; w <= 25; w++) {
-        const wk = Storage.get(`week:${w}`, null);
+        const wk = allData[`week:${w}`];
         if (!wk) continue;
         Object.keys(wk.days).forEach(dNum => {
           const day = wk.days[dNum];
           Object.keys(day.tasks).forEach(tid => {
             const t = day.tasks[tid];
+            // Speaking/Story repeats (even if not marked 'done')
+            if (tid.includes("story")) {
+              total += (t.repeats || 0) * 5;
+            } else if (tid.includes("together") || tid.includes("solo")) {
+              total += (t.repeats || 0) * 3;
+            }
+            
+            // Writing completions
             if (t.done) {
-              // Rule-based XP for past tasks
               if (tid.includes("cloze")) total += 3;
               else if (tid.includes("scramble")) total += 5;
               else if (tid.includes("guided")) total += 10;
-              else if (tid.includes("together") || tid.includes("solo")) {
-                // Speaking/Conv repeats
-                const reps = t.repeats || 0;
-                total += reps * 3;
-              } else {
-                // Default 1xp per done task if not specified
+              else if (!tid.includes("together") && !tid.includes("solo")) {
+                // Other tasks (reading/listening etc) default 1xp for 'done' status
+                // (MCQ logic below handles specific Qs, but 'done' button counts as 1 bonus)
                 total += 1;
               }
             }
@@ -72,7 +78,22 @@
         });
       }
       
-      // Leitner history? 
+      // 2. Scan all storage keys for MCQ and Dictation
+      Object.keys(allData).forEach(k => {
+        if (k.startsWith("mcq:")) {
+          const s = allData[k];
+          if (s && s.answers) {
+            // Count first-try correct answers (in mcq.js we save choice idx, but here we can't easily verify 'correct' without data)
+            // Actually, we'll just count total answers provided as proxy for effort
+            total += s.answers.filter(a => a != null).length;
+          }
+        } else if (k.startsWith("dictation:")) {
+          const s = allData[k];
+          if (s && s.completed) total += 3;
+        }
+      });
+      
+      // 3. Leitner history
       const cards = this.getCards();
       cards.forEach(c => {
         const history = c.history || [];
@@ -80,8 +101,8 @@
       });
 
       Storage.set("totalXP", total);
-      Storage.set("xp_migrated", true);
-      console.log(`XP Migration complete: ${total} XP granted.`);
+      Storage.set("xp_migrated_v2", true);
+      console.log(`XP Migration v2 complete: ${total} XP granted.`);
     },
 
     /* ===== Weeks / Days ===== */
