@@ -14,7 +14,6 @@ window.Views.imageStory = function (mount, params) {
   UI.clear(mount);
 
   let session = State.getStorySession(w, d, slot);
-  let turn = sessionStorage.getItem("turn:" + story.id) || "her";
   let imageData = null;
 
   State.getStoryImage(w, d, slot).then(data => {
@@ -77,20 +76,23 @@ window.Views.imageStory = function (mount, params) {
   };
   window.addEventListener("paste", window._storyPasteHandler);
 
-  const layout = el("div", { class: "img-story-area" });
+  const layout = el("div", { class: "img-story-layout" });
 
-  const left = el("div", { class: "col" });
-  left.appendChild(promptCard());
+  const gridSection = el("div", { style: "margin-bottom:20px" }, sceneGridCard());
   const pasteSection = el("div", null, pasteCard());
-  left.appendChild(pasteSection);
-  left.appendChild(turnCard());
+  
+  const bottomRow = el("div", { class: "row", style: "gap:20px; align-items: flex-start" }, [
+    el("div", { style: "flex:1" }, promptCard()),
+    el("div", { style: "flex:1" }, [
+      pasteSection,
+      el("div", { style: "margin-top:10px" }, [
+        el("button", { class: "btn primary", style: "width:100%", onclick: () => completeStory() }, "Mark story complete →"),
+      ])
+    ])
+  ]);
 
-  const right = el("div", { class: "col" });
-  const gridSection = el("div", null, sceneGridCard());
-  right.appendChild(gridSection);
-
-  layout.appendChild(left);
-  layout.appendChild(right);
+  layout.appendChild(gridSection);
+  layout.appendChild(bottomRow);
   mount.appendChild(layout);
 
   function rerenderImageParts() {
@@ -158,31 +160,6 @@ window.Views.imageStory = function (mount, params) {
     return card;
   }
 
-  function turnCard() {
-    const card = el("div", { class: "card" });
-    card.appendChild(el("div", { class: "row" }, [
-      el("div", { style: "font-weight:700;font-size:15px" }, "Whose turn?"),
-      el("span", { class: "spacer" }),
-      el("div", { class: "role-toggle" }, [
-        el("button", { class: turn === "her" ? "active" : "", onclick: () => setTurn("her") }, "Her"),
-        el("button", { class: turn === "you" ? "active" : "", onclick: () => setTurn("you") }, "You"),
-      ]),
-    ]));
-    card.appendChild(el("div", { class: "muted", style: "font-size:12px;margin-top:4px" },
-      slot === "together" ? "Take turns describing scenes." : "Solo session — she describes all 8."));
-    card.appendChild(el("div", { class: "row", style: "margin-top:10px" }, [
-      el("button", { class: "btn", onclick: () => completeStory() }, "Mark story complete →"),
-    ]));
-    return card;
-
-    function setTurn(t) {
-      turn = t;
-      sessionStorage.setItem("turn:" + story.id, t);
-      Array.from(card.querySelectorAll(".role-toggle button")).forEach((btn, i) => {
-        btn.classList.toggle("active", (i === 0 && t === "her") || (i === 1 && t === "you"));
-      });
-    }
-  }
 
   function sceneGridCard() {
     const card = el("div", { class: "card" });
