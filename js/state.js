@@ -303,6 +303,7 @@
       const cards = this.getCards();
       const c = cards.find((x) => x.id === id);
       if (!c) return null;
+      if (!c.history) c.history = [];
       c.history.push({ at: new Date().toISOString(), correct });
       if (correct) {
         c.box = Math.min(5, c.box + 1);
