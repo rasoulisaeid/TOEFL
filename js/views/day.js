@@ -192,7 +192,7 @@ function buildRatingsCard(w, d) {
   const day = State.getDay(w, d);
 
   ["speaking"].forEach((sk) => {
-    const cur = day.ratings[sk] || 0;
+    const cur = (day.ratings && day.ratings[sk]) || 0;
     const row = el("div", { class: "row", style: "margin-bottom:8px" }, [
       el("div", { style: "min-width:100px;text-transform:capitalize" }, sk + ":"),
       ratingBar(cur, (val) => {

@@ -35,7 +35,8 @@
     },
     getDay(w, d) {
       const wk = this.getWeek(w);
-      return wk.days[d] || defaultDayState();
+      const day = wk.days[d] || {};
+      return { ...defaultDayState(), ...day };
     },
     setDay(w, d, val) {
       const wk = this.getWeek(w);
