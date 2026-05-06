@@ -758,25 +758,25 @@ main {
   animation: bubble-in .25s ease;
 }
 .dialogue .line.A {
-  align-self: flex-end;
-  background: linear-gradient(135deg, var(--primary), var(--blue));
-  color: white;
-  border-bottom-right-radius: 6px;
-}
-.dialogue .line.B {
   align-self: flex-start;
   background: var(--card-2);
   color: var(--text);
   border-bottom-left-radius: 6px;
   border: 2px solid var(--border);
 }
+.dialogue .line.B {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--primary), var(--blue));
+  color: white;
+  border-bottom-right-radius: 6px;
+}
 .dialogue .who {
   font-size: 11px; font-weight: 900; margin-bottom: 4px;
   letter-spacing: 0.05em; text-transform: uppercase;
   opacity: .9;
 }
-.dialogue .line.A .who { color: rgba(255,255,255,0.92); }
-.dialogue .line.B .who { color: var(--primary); }
+.dialogue .line.A .who { color: var(--primary); }
+.dialogue .line.B .who { color: rgba(255,255,255,0.92); }
 .dialogue .what { word-break: break-word; }
 
 @keyframes bubble-in {
