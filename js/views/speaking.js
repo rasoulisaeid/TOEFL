@@ -233,19 +233,22 @@ window.Views.speaking = function (mount, params) {
               class: "btn big primary", 
               style: "width:100%; margin-top:30px", 
               onclick: async () => {
+                // Increment locally on BOTH sides for real-time visual feedback
+                State.incrementConvRepeats(w, d, conv.id);
+                
                 if (!remoteTriggered) {
-                  State.incrementConvRepeats(w, d, conv.id);
                   await window.PracticeSync.update({ finished: true });
                 }
-                // Delay clearing slightly to let SSE reach the other side if they are slow
-                setTimeout(() => {
-                   if (!remoteTriggered) window.PracticeSync.clear();
-                }, 1000);
+                
+                // Initiator clears the session data after a short delay
+                if (!remoteTriggered) {
+                  setTimeout(() => window.PracticeSync.clear(), 1500);
+                }
                 
                 close();
                 Speaking.render();
               }
-            }, remoteTriggered ? "Close" : "Finish & Close")
+            }, remoteTriggered ? "Close & Mark Done" : "Finish & Close")
           ]));
         }
 
