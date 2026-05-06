@@ -4,18 +4,16 @@ window.Gemini = (function() {
   const FALLBACK_MODELS = ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
 
   function getKey() {
-    // Obfuscated key fallback
-    const k = ['A','I','z','a','S','y','C','-','n','f','U','e','o','r','4','N','W','s','6','p','M','Z','j','1','d','Z','l','1','j','T','C','I','Y','L','B','p','r','h','A'].join('');
-    const configKey = (window.CONFIG && window.CONFIG.GEMINI_API_KEY) || (window.SECRETS && window.SECRETS.GEMINI_API_KEY) || k;
+    const configKey = (window.CONFIG && window.CONFIG.GEMINI_API_KEY) || "";
     const stored = (window.Storage && Storage.get) ? Storage.get("gemini:key") : null;
     const final = (stored && typeof stored === "string" && stored.trim() !== "") ? stored : configKey;
     
     if (!final && !window._keyWarned) {
       window._keyWarned = true;
-      console.warn("⚠️ No Gemini API key found. AI features will fail.");
+      console.warn("⚠️ No Gemini API key found.");
       setTimeout(() => {
-        if (window.UI && UI.toast) UI.toast("AI Settings: Please set your Gemini API key.", 5000);
-      }, 2000);
+        if (window.UI && UI.toast) UI.toast("AI Settings: Please set your Gemini API key.", 10000);
+      }, 3000);
     }
     return final;
   }
