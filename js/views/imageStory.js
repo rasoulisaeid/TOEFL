@@ -297,9 +297,6 @@ window.Views.imageStory = function (mount, params) {
 
   function openStoryPracticeModal() {
     UI.modal((m, close) => {
-      const content = el("div", { class: "col", style: "gap:24px; min-height:450px; justify-content:center; align-items:center; text-align:center" });
-      m.appendChild(content);
-
       let session = { roles: { A: null, B: null }, step: 0 };
       let myRole = null; 
 
@@ -318,7 +315,10 @@ window.Views.imageStory = function (mount, params) {
       }
 
       function showRolePicker() {
-        UI.clear(content);
+        UI.clear(m);
+        m.classList.remove("scene-modal");
+        
+        const content = el("div", { class: "col", style: "gap:24px; min-height:300px; justify-content:center; align-items:center; text-align:center" });
         content.appendChild(el("h2", { style: "margin:0" }, "Role A or B?"));
         content.appendChild(el("div", { class: "muted", style: "margin-bottom:20px" }, "Select a role to start synced practice."));
         
@@ -337,6 +337,7 @@ window.Views.imageStory = function (mount, params) {
             }
           }}, "Reset Session")
         ]));
+        m.appendChild(content);
       }
 
       function roleBtn(label, name) {
@@ -360,7 +361,7 @@ window.Views.imageStory = function (mount, params) {
       }
 
       function renderStep() {
-        UI.clear(content);
+        UI.clear(m);
         const scenes = story.scenes || [];
         const step = session.step;
         if (step >= scenes.length) { finish(); return; }
@@ -369,7 +370,7 @@ window.Views.imageStory = function (mount, params) {
         const isMe = (step % 2 === 0 && myRole === 'A') || (step % 2 === 1 && myRole === 'B');
         const whoName = step % 2 === 0 ? "First Person (A)" : "Second Person (B)";
 
-        // Use the same two-column layout as the regular scene modal
+        // IMPORTANT: Add class to 'm' (the modal root) for grid layout
         m.classList.add("scene-modal");
         
         // LEFT: Image
@@ -380,7 +381,7 @@ window.Views.imageStory = function (mount, params) {
         left.appendChild(cWrap);
         if (imageData) sliceTo(cv, imageData, step, true);
         else cWrap.appendChild(el("div", { class: "empty" }, "No image uploaded"));
-        content.appendChild(left);
+        m.appendChild(left);
 
         // RIGHT: Practice Info
         const right = el("div", { class: "modal-right" });
@@ -418,13 +419,13 @@ window.Views.imageStory = function (mount, params) {
           footer.appendChild(el("div", { class: "thinking", style: "width:100%; padding:20px; justify-content:center" }, `Waiting for ${whoName}...`));
         }
         right.appendChild(footer);
-
-        content.appendChild(right);
+        m.appendChild(right);
       }
 
       function finish(remoteTriggered = false) {
-        UI.clear(content);
-        content.appendChild(el("div", { style: "text-align:center; padding:20px" }, [
+        UI.clear(m);
+        m.classList.remove("scene-modal");
+        const content = el("div", { class: "col", style: "text-align:center; padding:20px; justify-content:center; align-items:center; min-height:300px" }, [
           el("div", { style: "font-size:64px; margin-bottom:20px" }, "🎊"),
           el("h2", null, "Story Complete!"),
           el("p", { class: "muted" }, remoteTriggered ? "Your partner finished the session." : "You've finished the shared narrative practice."),
@@ -441,8 +442,25 @@ window.Views.imageStory = function (mount, params) {
               Views.imageStory(mount, params);
             }
           }, remoteTriggered ? "Close" : "Finish & Close")
-        ]));
+        ]);
+        m.appendChild(content);
       }
+
+      if (window.PracticeSync) {
+        window.PracticeSync.join(story.id + ":story", onSync);
+        onSync(null); 
+      } else {
+        showRolePicker(); 
+      }
+
+      const checkClose = setInterval(() => {
+        if (!document.body.contains(m)) {
+          clearInterval(checkClose);
+          if (window.PracticeSync) window.PracticeSync.leave();
+        }
+      }, 1000);
+    });
+  }
 
       if (window.PracticeSync) {
         window.PracticeSync.join(story.id + ":story", onSync);
