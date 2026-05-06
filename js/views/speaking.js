@@ -24,11 +24,18 @@ window.Views.speaking = function (mount, params) {
     UI.clear(mount);
 
     // ===== Helper Functions (Hoisted within try-catch) =====
+    function cleanRole(name) {
+      if (!name) return "";
+      return name.replace(/\s*\((her|you|him|me)\)/gi, "").trim();
+    }
+
     function dialogueBlock() {
       const wrap = el("div", { class: "dialogue" });
+      const roles = [cleanRole(conv.roles[0]), cleanRole(conv.roles[1])];
       (conv.dialogue || []).forEach((line) => {
+        const whoName = line.who === "A" ? roles[0] : roles[1];
         const lineEl = el("div", { class: `line ${line.who}` }, [
-          el("div", { class: "who" }, line.who),
+          el("div", { class: "who" }, `${line.who}: ${whoName}`),
           el("div", { class: "what" }, line.line),
         ]);
         wrap.appendChild(lineEl);
@@ -103,11 +110,13 @@ window.Views.speaking = function (mount, params) {
           content.appendChild(el("div", { class: "muted" }, "Which part will you speak?"));
           
           const btns = el("div", { class: "row", style: "gap:12px; width:100%" }, [
-            el("button", { class: "btn big primary", style: "flex:1; padding:30px 10px", onclick: () => startPractice(0) }, [
-              el("div", { style: "font-size:24px; font-weight:900" }, "Role A")
+            el("button", { class: "btn big primary", style: "flex:1; padding:25px 10px", onclick: () => startPractice(0) }, [
+              el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, "Role A"),
+              el("div", { style: "font-size:20px; font-weight:900" }, cleanRole(conv.roles[0]))
             ]),
-            el("button", { class: "btn big primary", style: "flex:1; padding:30px 10px", onclick: () => startPractice(1) }, [
-              el("div", { style: "font-size:24px; font-weight:900" }, "Role B")
+            el("button", { class: "btn big primary", style: "flex:1; padding:25px 10px", onclick: () => startPractice(1) }, [
+              el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, "Role B"),
+              el("div", { style: "font-size:20px; font-weight:900" }, cleanRole(conv.roles[1]))
             ])
           ]);
           content.appendChild(btns);
@@ -116,17 +125,19 @@ window.Views.speaking = function (mount, params) {
         function startPractice(myRoleIdx) {
           let step = 0;
           const dialogue = conv.dialogue || [];
+          const roles = [cleanRole(conv.roles[0]), cleanRole(conv.roles[1])];
 
           function next() {
             UI.clear(content);
             const line = dialogue[step];
             const isMe = (line.who === 'A' && myRoleIdx === 0) || (line.who === 'B' && myRoleIdx === 1);
+            const whoName = line.who === 'A' ? roles[0] : roles[1];
             
             content.appendChild(el("div", { class: "muted", style: "font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.05em" }, `Line ${step + 1} of ${dialogue.length}`));
             
             const turnBadge = el("div", { 
               style: `padding:6px 16px; border-radius:999px; font-weight:900; font-size:13px; margin-top:8px; background:${isMe ? 'var(--primary)' : 'var(--card-2)'}; color:${isMe ? 'white' : 'var(--text-soft)'}; border:2px solid ${isMe ? 'var(--primary-dark)' : 'var(--border)'}` 
-            }, isMe ? "Your Turn (Role " + line.who + ")" : "Role " + line.who + "'s Turn");
+            }, isMe ? `Your Turn (${line.who}: ${whoName})` : `${line.who}: ${whoName}'s Turn`);
             content.appendChild(turnBadge);
 
             const textDisplay = el("div", { 
