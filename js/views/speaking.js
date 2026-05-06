@@ -230,6 +230,8 @@ window.Views.speaking = function (mount, params) {
 
         if (window.PracticeSync) {
           window.PracticeSync.join(conv.id, onSync);
+          // Safety: Always trigger an initial render so it's not empty while waiting for cloud
+          onSync(null); 
         } else {
           showRolePicker(); 
         }

@@ -325,19 +325,25 @@
       const safeId = taskId.replace(/:/g, "_");
       const url = `${DB_URL}/families/${FAMILY_KEY}/sessions/${safeId}.json`;
       
+      console.log("🔗 Joining practice session:", safeId);
+      
       this._sse = new EventSource(url);
       this._sse.addEventListener("put", (e) => {
         try {
           const payload = JSON.parse(e.data);
-          if (payload && payload.path === "/" && payload.data) callback(payload.data);
-        } catch(err) {}
+          if (payload && payload.data) callback(payload.data);
+          else if (payload && payload.path === "/") callback(payload.data);
+        } catch(err) { console.warn("Practice Sync PUT error", err); }
       });
       this._sse.addEventListener("patch", (e) => {
         try {
           const payload = JSON.parse(e.data);
           if (payload && payload.data) callback(payload.data);
-        } catch(err) {}
+        } catch(err) { console.warn("Practice Sync PATCH error", err); }
       });
+      this._sse.onerror = (e) => {
+        console.warn("Practice Sync SSE connection issue. Reconnecting...");
+      };
 
       // Initial pull
       try {
@@ -346,7 +352,7 @@
           const data = await res.json();
           if (data) callback(data);
         }
-      } catch(e) {}
+      } catch(e) { console.error("Practice Sync initial pull failed", e); }
     },
 
     async update(data) {
