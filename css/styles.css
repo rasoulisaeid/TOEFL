@@ -1898,9 +1898,9 @@ main {
   font-weight: 900;
 }
 .scramble-sidebar .sidebar-text {
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.6;
-  font-weight: 500;
+  font-weight: 600;
 }
 .scramble-sidebar .sb-sentence.solved { color: var(--text); font-weight: 600; }
 .scramble-sidebar .sb-sentence.wip { color: var(--primary-dark); font-style: italic; opacity: 0.85; }
