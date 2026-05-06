@@ -300,7 +300,7 @@ function buildDictationCard(t) {
 
   const tokens = tokenizeForDictation(t.text);
 
-  function loadAndRender() {
+  function loadAndRender(forceNewDistractors = false) {
     let state = Storage.get(storageKey) || {};
     if (!state.answers) state.answers = {};
     
@@ -315,13 +315,17 @@ function buildDictationCard(t) {
     
     const cachedDistractors = Storage.get(cacheKey, null);
 
-    if (cachedDistractors) {
+    if (cachedDistractors && !forceNewDistractors) {
       renderDictation(body, tokens, blankIndices, cachedDistractors, state, storageKey, cacheKey, blankCacheKey, loadAndRender);
     } else {
       UI.clear(body);
-      body.appendChild(el("div", { class: "thinking" }, "Generating fresh exercise with Gemini Pro..."));
-      const toast = UI.toast("Generating exercise...", 0);
-      Gemini.generateDistractors(blankedWords).then(distractors => {
+      body.appendChild(el("div", { class: "thinking" }, "Generating fresh word pairs..."));
+      const toast = UI.toast("Generating new pairs...", 0);
+      
+      // If we are forcing new ones, we can pass the old ones as 'exclude'
+      const exclude = forceNewDistractors ? (cachedDistractors || {}) : {};
+
+      Gemini.generateDistractors(blankedWords, exclude).then(distractors => {
         Storage.set(cacheKey, distractors);
         UI.clear(body);
         renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, blankCacheKey, loadAndRender);
@@ -393,12 +397,10 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
       renderDictation(body, tokens, blankIndices, distractors, state, storageKey, cacheKey, blankCacheKey, reloadFn);
     }}, "Reset"),
     el("button", { class: "btn sm ghost", onclick: () => {
-      Storage.set(cacheKey, null);
-      Storage.set(blankCacheKey, null);
       state.answers = {};
       state.completed = false;
       Storage.set(storageKey, state);
-      reloadFn();
+      reloadFn(true);
     }}, "⟳ New pairs"),
   ]));
 

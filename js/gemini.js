@@ -102,17 +102,24 @@ window.Gemini = (function() {
      * @param {string[]} words - array of words to generate distractors for
      * @returns {Promise<Object>}
      */
-    async generateDistractors(words) {
+    async generateDistractors(words, exclude = {}) {
       const unique = [...new Set(words.map(w => w.toLowerCase()))];
       const randomSeed = Math.random().toString(36).slice(2, 7);
+      
+      let excludeText = "";
+      if (Object.keys(exclude).length > 0) {
+        excludeText = `IMPORTANT: Provide DIFFERENT distractors than these previous ones if possible: ${JSON.stringify(exclude)}.`;
+      }
+
       const prompt = [
         `You are creating a listening dictation exercise. For each word, provide ONE real English word that SOUNDS SIMILAR (similar pronunciation/phonetics) but is a DIFFERENT word.`,
-        `Variation seed: ${randomSeed}. Try to be creative and provide different distractors than common defaults if possible.`,
+        `Variation seed: ${randomSeed}. ${excludeText}`,
+        `Try to be creative and provide fresh, distinct distractors. Avoid obvious or repeating ones.`,
         ``,
         `Rules:`,
         `- Every distractor MUST be a real English dictionary word`,
         `- Focus on SIMILAR PRONUNCIATION, rhyming, or minimal sound changes`,
-        `- Examples: "coffee" → "toffee", "drank" → "drank" is wrong → use "frank", "morning" → "mourning", "used" → "mused", "started" → "charted", "remember" → "ember", "quiet" → "quite", "white" → "write", "need" → "knead", "even" → "oven"`,
+        `- Examples: "coffee" → "toffee", "drank" → "frank", "morning" → "mourning", "started" → "charted"`,
         `- NEVER invent fake words. Every word must exist in an English dictionary.`,
         ``,
         `Words: ${unique.join(", ")}`,
