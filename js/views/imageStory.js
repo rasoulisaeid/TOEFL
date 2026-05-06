@@ -397,14 +397,36 @@ window.Views.imageStory = function (mount, params) {
         const vocabRow = el("div", { class: "row", style: "flex-wrap:wrap;gap:6px; margin:10px 0" },
           (scene.vocab || []).map((v) => el("span", { class: "chip" }, v)));
         
-        const hintBox = el("div", { 
-          style: "padding:16px; background:var(--gold-soft); color:#6b5400; border-radius:12px; font-size:15px; font-weight:700; margin:16px 0; line-height:1.4" 
-        }, [ el("span", { style: "margin-right:8px" }, "💡"), scene.hint ]);
+        const descBox = el("div", { class: "hidden-text" }, "(model description hidden)");
+        const hintBox = el("div", { class: "hidden-text" }, "(tap 'Show hint')");
+        
+        const actions = el("div", { class: "row", style: "margin-top:6px" }, [
+          el("button", { class: "btn sm", onclick: () => {
+            if (hintBox.classList.contains("show")) {
+              hintBox.textContent = "(tap 'Show hint')";
+              hintBox.classList.remove("show");
+            } else {
+              hintBox.textContent = scene.hint;
+              hintBox.classList.add("show");
+            }
+          }}, "Show hint"),
+          el("button", { class: "btn sm", onclick: () => {
+            if (descBox.classList.contains("show")) {
+              descBox.textContent = "(model description hidden)";
+              descBox.classList.remove("show");
+            } else {
+              descBox.textContent = scene.description;
+              descBox.classList.add("show");
+            }
+          }}, "Show description"),
+        ]);
 
         right.appendChild(el("div", { class: "desc-area" }, [
           el("div", { class: "muted", style: "font-size:11px;text-transform:uppercase" }, "Useful words"),
           vocabRow,
-          hintBox
+          hintBox,
+          descBox,
+          actions
         ]));
 
         // Footer Actions
