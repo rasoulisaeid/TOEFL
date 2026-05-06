@@ -92,6 +92,24 @@
     }
   });
 
+  // AI Settings Status Logic
+  function updateAIStatus() {
+    const icon = document.getElementById("aiStatusIcon");
+    if (!icon) return;
+    const curKey = Storage.get("gemini:key", "");
+    const isSet = curKey && curKey.length > 10;
+    
+    if (isSet) {
+      icon.textContent = "check_circle";
+      icon.style.color = "var(--green)";
+      icon.title = "Gemini API Connected";
+    } else {
+      icon.textContent = "radio_button_unchecked";
+      icon.style.color = "var(--text-soft)";
+      icon.title = "Gemini API Disconnected";
+    }
+  }
+
   // AI Settings Modal
   document.getElementById("openSettings")?.addEventListener("click", () => {
     UI.modal((m, close) => {
@@ -102,12 +120,12 @@
       m.innerHTML = `
         <div class="word-modal-content">
           <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:15px">
-            <h2 style="margin:0">AI Settings</h2>
+            <h2 style="margin:0">Gemini API</h2>
             ${isSet ? '<span style="color:var(--green); font-size:12px; font-weight:700">● Connected</span>' : '<span style="color:var(--text-soft); font-size:12px">○ Disconnected</span>'}
           </div>
           
           <p class="muted" style="font-size:13px; margin-bottom:20px">
-            Your Gemini API key is stored locally in this browser. It is never synced or shared.
+            Enter your API key from Google AI Studio. It is stored locally in this browser.
           </p>
 
           <div class="col" style="gap:12px">
@@ -133,6 +151,7 @@
         saveBtn.textContent = "✓ Saved!";
         saveBtn.style.background = "var(--green)";
         UI.toast(val ? "Key saved! App refreshing..." : "Key cleared.");
+        updateAIStatus();
         setTimeout(() => location.reload(), 600);
       };
 
@@ -141,6 +160,8 @@
       saveBtn.onclick = doSave;
     });
   });
+
+  updateAIStatus();
 
   window.addEventListener("hashchange", route);
 

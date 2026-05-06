@@ -32,8 +32,9 @@
         </a>
       </nav>
       <div class="sidebar-foot">
-        <button class="nav-link" id="openSettings" style="width:100%; border:none; background:none; padding:10px; margin-bottom:8px; cursor:pointer; color:var(--text-soft)">
-          <span class="nav-icon material-symbols-rounded">settings</span><span class="nav-label">AI Settings</span>
+        <button class="nav-link" id="openSettings" style="width:100%; border:none; background:none; padding:10px; margin-bottom:8px; cursor:pointer; color:var(--text-soft); display:flex; align-items:center; gap:12px">
+          <span id="aiStatusIcon" class="nav-icon material-symbols-rounded" style="font-size:20px">radio_button_unchecked</span>
+          <span class="nav-label" style="font-weight:600">Gemini API</span>
         </button>
         <div id="streakBadge" class="streak-badge" title="Daily streak">
           <span class="streak-flame">🔥</span><span class="streak-num">0</span>
