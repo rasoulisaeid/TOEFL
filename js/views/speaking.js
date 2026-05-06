@@ -169,8 +169,10 @@ window.Views.speaking = function (mount, params) {
 
         async function startPractice(roleLabel) {
           myRole = roleLabel;
-          const update = { roles: { [roleLabel]: window.SYNC_CLIENT_ID } };
-          await window.PracticeSync.update(update);
+          // Merge with existing roles so PATCH doesn't wipe the other player's role
+          const mergedRoles = { ...session.roles, [roleLabel]: window.SYNC_CLIENT_ID };
+          session.roles = mergedRoles;
+          await window.PracticeSync.update({ roles: mergedRoles });
           renderStep();
         }
 
@@ -227,20 +229,16 @@ window.Views.speaking = function (mount, params) {
               class: "btn big primary", 
               style: "width:100%; margin-top:30px", 
               onclick: async () => {
-                // Increment locally on BOTH sides for real-time visual feedback
+                // Mark local session as finished BEFORE awaiting, so the
+                // onSync echo from our own update doesn't re-fire finish(true).
+                session.finished = true;
                 State.incrementConvRepeats(w, d, conv.id);
-                
                 if (!remoteTriggered) {
                   await window.PracticeSync.update({ finished: true });
-                }
-                
-                // Initiator clears the session data after a short delay
-                if (!remoteTriggered) {
                   setTimeout(() => window.PracticeSync.clear(), 1500);
                 }
-                
                 close();
-                Speaking.render();
+                Views.speaking(mount, params);
               }
             }, remoteTriggered ? "Close & Mark Done" : "Finish & Close")
           ]));

@@ -1841,7 +1841,7 @@ main {
   font-weight: 800;
   cursor: pointer;
   transition: all .12s;
-  font-size: 14.5px;
+  font-size: 16px;
 }
 .scramble-chip:hover { border-color: var(--primary); color: var(--primary-dark); }
 .scramble-chip.used { opacity: 0.3; pointer-events: none; }
@@ -1860,7 +1860,7 @@ main {
   color: white;
   border-radius: 10px;
   font-weight: 800;
-  font-size: 14.5px;
+  font-size: 16px;
   cursor: pointer;
 }
 .scramble-answer .answer-token:hover { background: var(--primary-dark); }
@@ -1868,6 +1868,60 @@ main {
 .scramble-answer.correct .answer-token { background: var(--green); }
 .scramble-answer.wrong { border-color: var(--red-dark); background: var(--red-soft); animation: shake .3s ease; }
 .scramble-answer.wrong .answer-token { background: var(--red); }
+
+/* Scramble layout: main + sidebar */
+.scramble-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 1000px) {
+  .scramble-layout { grid-template-columns: 1fr; }
+}
+
+.scramble-sidebar {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-bottom-width: 5px;
+  border-radius: var(--r-lg);
+  padding: 16px;
+  position: sticky;
+  top: 16px;
+}
+.scramble-sidebar h3 {
+  font-size: 13px;
+  margin: 0 0 12px;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 900;
+}
+.scramble-sidebar .sidebar-text {
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+.scramble-sidebar .sb-sentence.solved { color: var(--text); font-weight: 600; }
+.scramble-sidebar .sb-sentence.wip { color: var(--primary-dark); font-style: italic; opacity: 0.85; }
+.scramble-sidebar .sb-sentence.empty { color: var(--text-soft); opacity: 0.45; }
+
+/* Drag & drop styles */
+.scramble-chip[draggable="true"], .scramble-answer .answer-token[draggable="true"] {
+  cursor: grab;
+}
+.scramble-chip.dragging, .scramble-answer .answer-token.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+.scramble-answer.drop-active { border-color: var(--primary); border-style: dashed; background: var(--primary-soft); }
+.scramble-chips.drop-active { border-color: var(--primary); background: var(--primary-soft); }
+.scramble-answer .answer-token.drop-before {
+  box-shadow: -3px 0 0 var(--primary);
+}
+.scramble-answer .answer-token.drop-after {
+  box-shadow: 3px 0 0 var(--primary);
+}
 
 /* Guided writing */
 .guided-step {

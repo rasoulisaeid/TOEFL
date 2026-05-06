@@ -107,6 +107,12 @@ function buildCloze(w, d, task) {
     checked: false,
   });
   function save() { Storage.set(stateKey, state); }
+  // Persist a shuffled display order for the pool so correct words aren't
+  // sitting at the front of the pool in the same order as the blanks.
+  if (!Array.isArray(state.poolOrder) || state.poolOrder.length !== task.pool.length) {
+    state.poolOrder = shuffleIndices(task.pool.length);
+    save();
+  }
 
   // Build passage with blanks
   const passage = el("div", { class: "cloze-passage" });
@@ -127,10 +133,10 @@ function buildCloze(w, d, task) {
   });
   wrap.appendChild(passage);
 
-  // Word pool
+  // Word pool — rendered in the persisted shuffled order
   const poolEl = el("div", { class: "word-pool" });
-  task.pool.forEach((word, i) => {
-    poolEl.appendChild(makePoolWord(word, i));
+  state.poolOrder.forEach((origIdx) => {
+    poolEl.appendChild(makePoolWord(task.pool[origIdx], origIdx));
   });
   wrap.appendChild(el("div", { class: "section-title" }, "Word pool"));
   wrap.appendChild(poolEl);
@@ -322,9 +328,19 @@ function buildScramble(w, d, task) {
     task.intro ? el("div", { class: "muted", style: "margin-bottom:6px" }, task.intro) : null,
   ]));
 
+  // Sidebar — generated text so far (created BEFORE rows so refreshSidebar is safe)
+  const sidebar = el("div", { class: "scramble-sidebar" });
+  sidebar.appendChild(el("h3", null, "Your text so far"));
+  const sidebarText = el("div", { class: "sidebar-text" });
+  sidebar.appendChild(sidebarText);
+
+  // Layout: main + sidebar
+  const layout = el("div", { class: "scramble-layout" });
+  const main = el("div", { class: "col" });
+
   const list = el("div", { class: "scramble-list" });
   task.phrases.forEach((phrase, idx) => list.appendChild(buildRow(phrase, idx)));
-  wrap.appendChild(list);
+  main.appendChild(list);
 
   const actions = el("div", { class: "row", style: "margin-top:14px;justify-content:flex-end" });
   actions.appendChild(el("button", { class: "btn primary", text: "Mark complete ✓", onclick: () => {
@@ -337,9 +353,35 @@ function buildScramble(w, d, task) {
     UI.toast("Writing complete ✓");
     setTimeout(() => location.hash = `#/week/${w}/day/${d}`, 500);
   }}));
-  wrap.appendChild(actions);
+  main.appendChild(actions);
 
+  layout.appendChild(main);
+  layout.appendChild(sidebar);
+  wrap.appendChild(layout);
+
+  refreshSidebar();
   return wrap;
+
+  function refreshSidebar() {
+    UI.clear(sidebarText);
+    task.phrases.forEach((phrase, idx) => {
+      let span;
+      if (state.solved[idx]) {
+        span = el("span", { class: "sb-sentence solved", text: phrase.correct + ". " });
+      } else if (state.chosen[idx].length > 0) {
+        const built = state.chosen[idx].map((i) => phrase.scrambled[i]).join(" ");
+        span = el("span", { class: "sb-sentence wip", text: built + "… " });
+      } else {
+        span = el("span", { class: "sb-sentence empty", text: "_____. " });
+      }
+      sidebarText.appendChild(span);
+    });
+  }
+
+  function parseTransfer(e) {
+    try { return JSON.parse(e.dataTransfer.getData("text/plain")); }
+    catch (err) { return null; }
+  }
 
   function buildRow(phrase, idx) {
     const row = el("div", { class: "scramble-row" + (state.solved[idx] ? " solved" : "") });
@@ -356,10 +398,66 @@ function buildScramble(w, d, task) {
         refreshRow();
       }});
       chip.dataset.chipIdx = i;
+      chip.draggable = true;
+      chip.addEventListener("dragstart", (e) => {
+        if (state.solved[idx] || state.chosen[idx].includes(i)) {
+          e.preventDefault();
+          return;
+        }
+        e.dataTransfer.setData("text/plain", JSON.stringify({ source: "chips", idx, chipIdx: i }));
+        e.dataTransfer.effectAllowed = "move";
+        chip.classList.add("dragging");
+      });
+      chip.addEventListener("dragend", () => chip.classList.remove("dragging"));
       chipsBox.appendChild(chip);
     });
 
+    // Drop on chips area = remove from answer
+    chipsBox.addEventListener("dragover", (e) => {
+      if (state.solved[idx]) return;
+      e.preventDefault();
+      chipsBox.classList.add("drop-active");
+    });
+    chipsBox.addEventListener("dragleave", () => chipsBox.classList.remove("drop-active"));
+    chipsBox.addEventListener("drop", (e) => {
+      e.preventDefault();
+      chipsBox.classList.remove("drop-active");
+      if (state.solved[idx]) return;
+      const data = parseTransfer(e);
+      if (!data || data.idx !== idx || data.source !== "answer") return;
+      state.chosen[idx].splice(data.position, 1);
+      save();
+      refreshRow();
+    });
+
     const answer = el("div", { class: "scramble-answer" });
+
+    // Drop on empty answer area = append at end
+    answer.addEventListener("dragover", (e) => {
+      if (state.solved[idx]) return;
+      e.preventDefault();
+      answer.classList.add("drop-active");
+    });
+    answer.addEventListener("dragleave", (e) => {
+      if (e.target === answer) answer.classList.remove("drop-active");
+    });
+    answer.addEventListener("drop", (e) => {
+      e.preventDefault();
+      answer.classList.remove("drop-active");
+      if (state.solved[idx]) return;
+      const data = parseTransfer(e);
+      if (!data || data.idx !== idx) return;
+      if (data.source === "chips") {
+        if (state.chosen[idx].includes(data.chipIdx)) return;
+        state.chosen[idx].push(data.chipIdx);
+      } else if (data.source === "answer") {
+        const moved = state.chosen[idx][data.position];
+        state.chosen[idx].splice(data.position, 1);
+        state.chosen[idx].push(moved);
+      }
+      save();
+      refreshRow();
+    });
 
     const checkBtn = el("button", { class: "btn sm primary", text: "Check", onclick: () => check() });
     const clearBtn = el("button", { class: "btn sm", text: "Clear", onclick: () => {
@@ -386,20 +484,74 @@ function buildScramble(w, d, task) {
       });
       // Update answer area
       UI.clear(answer);
-      answer.classList.remove("correct", "wrong");
-      state.chosen[idx].forEach((chipI) => {
+      answer.classList.remove("correct", "wrong", "drop-active");
+      state.chosen[idx].forEach((chipI, position) => {
         const tok = el("span", { class: "answer-token", text: phrase.scrambled[chipI], onclick: () => {
           if (state.solved[idx]) return;
-          state.chosen[idx] = state.chosen[idx].filter((x) => x !== chipI);
+          state.chosen[idx].splice(position, 1);
           save();
           refreshRow();
         }});
+        tok.dataset.position = position;
+        tok.draggable = !state.solved[idx];
+
+        tok.addEventListener("dragstart", (e) => {
+          if (state.solved[idx]) { e.preventDefault(); return; }
+          e.dataTransfer.setData("text/plain", JSON.stringify({ source: "answer", idx, chipIdx: chipI, position }));
+          e.dataTransfer.effectAllowed = "move";
+          tok.classList.add("dragging");
+        });
+        tok.addEventListener("dragend", () => {
+          tok.classList.remove("dragging");
+          tok.classList.remove("drop-before", "drop-after");
+        });
+
+        // Drop on a token = insert relative to that token (left = before, right = after)
+        tok.addEventListener("dragover", (e) => {
+          if (state.solved[idx]) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const rect = tok.getBoundingClientRect();
+          const before = (e.clientX - rect.left) < rect.width / 2;
+          tok.classList.toggle("drop-before", before);
+          tok.classList.toggle("drop-after", !before);
+        });
+        tok.addEventListener("dragleave", () => {
+          tok.classList.remove("drop-before", "drop-after");
+        });
+        tok.addEventListener("drop", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const before = tok.classList.contains("drop-before");
+          tok.classList.remove("drop-before", "drop-after");
+          if (state.solved[idx]) return;
+          const data = parseTransfer(e);
+          if (!data || data.idx !== idx) return;
+
+          let insertAt = before ? position : position + 1;
+
+          if (data.source === "chips") {
+            if (state.chosen[idx].includes(data.chipIdx)) return;
+            state.chosen[idx].splice(insertAt, 0, data.chipIdx);
+          } else if (data.source === "answer") {
+            if (data.position === position) return;
+            const moved = state.chosen[idx][data.position];
+            state.chosen[idx].splice(data.position, 1);
+            // Adjust if the removal shifted target index
+            if (data.position < insertAt) insertAt -= 1;
+            state.chosen[idx].splice(insertAt, 0, moved);
+          }
+          save();
+          refreshRow();
+        });
+
         answer.appendChild(tok);
       });
       if (state.solved[idx]) {
         answer.classList.add("correct");
         row.classList.add("solved");
       }
+      refreshSidebar();
     }
 
     function check() {

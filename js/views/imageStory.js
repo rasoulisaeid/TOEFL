@@ -357,7 +357,10 @@ window.Views.imageStory = function (mount, params) {
 
       async function startPractice(roleLabel) {
         myRole = roleLabel;
-        await window.PracticeSync.update({ roles: { [roleLabel]: window.SYNC_CLIENT_ID } });
+        const mergedRoles = { ...session.roles, [roleLabel]: window.SYNC_CLIENT_ID };
+        session.roles = mergedRoles;
+        await window.PracticeSync.update({ roles: mergedRoles });
+        renderStep();
       }
 
       function renderStep() {
@@ -451,10 +454,11 @@ window.Views.imageStory = function (mount, params) {
           el("div", { style: "font-size:64px; margin-bottom:20px" }, "🎊"),
           el("h2", null, "Story Complete!"),
           el("p", { class: "muted" }, remoteTriggered ? "Your partner finished the session." : "You've finished the shared narrative practice."),
-          el("button", { 
-            class: "btn big primary", 
-            style: "width:100%; margin-top:30px", 
+          el("button", {
+            class: "btn big primary",
+            style: "width:100%; margin-top:30px",
             onclick: async () => {
+              session.finished = true;
               State.incrementConvRepeats(w, d, story.id + ":story");
               if (!remoteTriggered) {
                 await window.PracticeSync.update({ finished: true });
