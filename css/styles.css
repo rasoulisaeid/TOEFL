@@ -323,11 +323,12 @@ main {
   }
   .sidebar .topnav { display: none; }
   .sidebar-foot { margin-top: 0; flex-direction: row; margin-left: auto; gap: 8px; }
+  .sidebar-stats { flex-direction: row; gap: 6px; }
   .brand-mark { width: 38px; height: 38px; font-size: 18px; }
   .brand-name { font-size: 16px; }
   .brand-sub { display: none; }
-  .streak-badge { padding: 8px 12px; font-size: 14px; }
-  .streak-flame { font-size: 16px; }
+  .streak-badge, .xp-badge { padding: 8px 12px; font-size: 14px; }
+  .streak-flame, .xp-star { font-size: 16px; }
   .sync-badge .sync-label { display: none; }
   .bottom-nav { display: flex; }
   main { padding: 18px 16px 90px; }
