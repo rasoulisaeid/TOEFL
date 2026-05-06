@@ -19,7 +19,7 @@ window.WEEK1_LISTENING = {
           category: "general",
           title: "Sara's coffee ritual",
           intro: "A short, friendly monologue.",
-          text: "I never used to like coffee. For years I drank tea, even on cold mornings. Then I started a new job that began at seven, and tea simply was not enough. My boss took me to a small café around the corner on my first day. She ordered me a flat white, and I remember thinking — this is not really coffee, this is a hug in a cup. Now, three years later, my morning is the same: ten minutes at that little café, the same barista, the same flat white, and ten minutes of quiet before I open my laptop. Honestly, I do not even need the caffeine anymore. I just need the ten minutes.",
+          text: "I never used to like coffee. For years I drank tea, even on cold mornings. Then I started a new job that began at seven, and tea was not enough. My boss took me to a small café around the corner on my first day. She ordered me a flat white, and I remember thinking — this is not really coffee, this is a hug in a cup. Now, three years later, my morning is the same: ten minutes at that little café, the same barista, the same flat white, and ten minutes of quiet before I open my laptop. Honestly, I do not even need the caffeine anymore. I just need the ten minutes.",
           vocab: [
             { w: "ritual", p: "noun", m: "a regular meaningful routine", ex: "Coffee is part of her ritual." },
             { w: "barista", p: "noun", m: "the person who makes coffee at a café", ex: "The same barista every morning." },
@@ -63,7 +63,7 @@ window.WEEK1_LISTENING = {
           category: "scientific",
           title: "Why coffee gives a 'second wind'",
           intro: "A short explanation in calm, lecture style.",
-          text: "Most people know coffee can wake them up. What is less known is that coffee often produces a second, smaller boost of energy about ninety minutes after the first cup. This is sometimes called the 'second wind.' The reason is interesting: caffeine takes time to fully circulate, but it also blocks adenosine receptors in the brain at different speeds. Some receptors are blocked quickly, others more slowly. As the slower receptors are reached, alertness rises again. The effect is gentler than the first peak, but it explains why a cup of coffee at nine in the morning can still help you focus at eleven. The brain, like a complicated machine, wakes up in stages.",
+          text: "Most people know that coffee can wake them up. What fewer people know is that coffee often gives a second, smaller boost of energy about ninety minutes after the first cup. This is sometimes called the 'second wind.' The reason is interesting: caffeine takes time to fully circulate in the body, and it also blocks the adenosine receptors in the brain at different speeds. Some receptors are blocked quickly, others more slowly. As the slower ones are reached, your alertness goes up again. The second push is softer than the first one, but it explains why a cup of coffee at nine in the morning can still help you focus at eleven. The brain, like a complicated machine, wakes up in stages.",
           vocab: [
             { w: "second wind", p: "phrase", m: "a renewed energy after a tired moment", ex: "The runner got a second wind." },
             { w: "to circulate", p: "verb", m: "to move through the body", ex: "Caffeine takes time to circulate." },
@@ -112,7 +112,7 @@ window.WEEK1_LISTENING = {
           category: "fashion",
           title: "Café Central, Vienna",
           intro: "A short cultural description.",
-          text: "Step into Café Central in Vienna and you step into another century. The ceilings are high and arched, painted in soft cream. Marble columns rise like the inside of a small cathedral. At the back, there is a piano, and somebody is almost always playing something gentle. In the early nineteen hundreds, this café was a regular meeting place for writers, scientists, and political thinkers — Trotsky, Freud, even Stefan Zweig. They would sit for hours over a single coffee, reading newspapers, arguing softly. Today, tourists fill most of the seats, but if you arrive before ten in the morning, you can still find a quiet table, order a Viennese melange, and pretend, just for a while, that you are part of that older conversation.",
+          text: "Step into Café Central in Vienna and you step into another century. The ceilings are high and curved, painted in soft cream. Marble columns rise like the inside of a small cathedral. At the back, there is a piano, and somebody is almost always playing something gentle. In the early nineteen hundreds, this café was a regular meeting place for writers, scientists, and political thinkers — Trotsky, Freud, even Stefan Zweig. They would sit for hours over a single coffee, reading newspapers, talking softly. Today, tourists fill most of the seats, but if you arrive before ten in the morning, you can still find a quiet table, order a Viennese melange, and pretend, just for a while, that you are part of that older conversation.",
           vocab: [
             { w: "ornate", p: "adj", m: "richly decorated", ex: "An ornate ceiling." },
             { w: "marble", p: "noun", m: "a hard, polished stone used in fancy buildings", ex: "Marble columns." },

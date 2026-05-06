@@ -15,8 +15,8 @@ window.WEEK1_READING = {
           title: "The Morning Coffee Ritual",
           intro: "How people around the world begin their day.",
           paragraphs: [
-            "For millions of people, the first sip of coffee is more than a simple drink — it is a small daily ritual. In Italy, a quick espresso at a counter rarely takes more than two minutes. In Vietnam, by contrast, the famous egg coffee is slow, sweet, and meant to be enjoyed for a long time. In Turkey, the rich aroma of finely ground beans has filled morning kitchens for over five centuries.",
-            "What ties these traditions together is not the recipe but the moment itself. The act of brewing, smelling, and sipping helps people pause before a busy day begins. Even when the cup is small, the ritual gives the morning a clear shape. As one café owner in Rome once joked, 'I do not sell coffee — I sell ten quiet minutes.'",
+            "For millions of people, the first sip of coffee is more than a simple drink — it is a small daily ritual. In Italy, a quick espresso at the counter usually takes less than two minutes. In Vietnam, the famous egg coffee is the opposite: slow, sweet, and made to be enjoyed for a long time. In Turkey, the warm aroma of fresh ground beans has filled morning kitchens for more than five hundred years.",
+            "What ties these traditions together is not the recipe but the moment itself. The act of brewing, smelling, and sipping the coffee helps people pause before a busy day starts. Even when the cup is small, the ritual gives the morning a clear shape. As one café owner in Rome once joked, 'I don't sell coffee — I sell ten quiet minutes.'",
           ],
           vocab: [
             { w: "ritual", p: "noun", m: "a regular, meaningful routine", ex: "Morning coffee is a daily ritual." },
@@ -68,7 +68,7 @@ window.WEEK1_READING = {
           intro: "A simple look at what coffee actually does to your brain.",
           paragraphs: [
             "Most of us reach for coffee when we feel tired, but the caffeine in our cup does not really give us new energy. Instead, it tricks the brain. As the day goes on, a chemical called adenosine builds up and makes us feel sleepy. Adenosine works by attaching to special receptors in the brain. The more it attaches, the more tired we feel.",
-            "Caffeine has a similar shape to adenosine, so it can fit into those same receptors and block them. As long as caffeine is sitting there, the tiredness signal cannot get through. This is why we feel suddenly more alert about thirty minutes after a cup. The energy was already in us — we just stopped feeling the brakes.",
+            "Caffeine has a similar shape to adenosine, so it can fit into those same receptors and block them. While caffeine is sitting there, the tiredness signal cannot get through. This is why we feel more alert about thirty minutes after a cup. The energy was already inside us — we just stopped feeling the brakes.",
           ],
           vocab: [
             { w: "adenosine", p: "noun", m: "a chemical in the brain that makes us feel tired", ex: "Adenosine builds up during the day." },
@@ -120,8 +120,8 @@ window.WEEK1_READING = {
           title: "The Look of a Specialty Café",
           intro: "Why so many modern cafés look almost the same.",
           paragraphs: [
-            "Walk into a specialty coffee shop in Tokyo, Berlin, or Mexico City and the design will probably feel familiar. You will likely see exposed wood, white walls, soft lighting, a minimalist counter, and a few green plants. This look did not appear by accident. Beginning in the 2010s, café owners worldwide started borrowing ideas from Scandinavian design — clean lines, natural textures, and a calm, neutral palette.",
-            "The goal of this aesthetic is to evoke quiet focus and craft. Without bold colors and decoration, attention shifts to the coffee itself: the smell, the cup, the slow movement of the barista. Some critics call this style 'too uniform,' but its fans argue that the calm space is exactly what a busy person needs in the middle of a noisy city.",
+            "Walk into a specialty coffee shop in Tokyo, Berlin, or Mexico City and the design will probably feel familiar. You will see exposed wood, white walls, soft lighting, a minimalist counter, and a few green plants. This look did not happen by accident. Starting in the 2010s, café owners around the world began borrowing ideas from Scandinavian design — clean lines, natural materials, and a calm, neutral palette.",
+            "The goal of this style is to evoke quiet focus and a hand-made feeling. Without strong colors or much decoration, your attention moves to the coffee itself: the smell, the cup, the slow hands of the barista. Some critics call this style 'too uniform,' but its fans say that a calm space is exactly what a busy person needs in the middle of a noisy city.",
           ],
           vocab: [
             { w: "minimalist", p: "adj", m: "using very few elements; simple in style", ex: "A minimalist counter with no clutter." },
@@ -180,8 +180,8 @@ window.WEEK1_READING = {
           title: "Why Walking Is Underrated",
           intro: "The simplest exercise might be the best one.",
           paragraphs: [
-            "When people think of exercise, they often imagine running, lifting weights, or sweating in a gym. Walking is rarely the first thing that comes to mind. Yet a daily thirty-minute walk has a long list of benefits: better mood, healthier heart, lower blood pressure, and a clearer head. Compared with intense workouts, walking is gentle on the joints and easy to start.",
-            "Perhaps the best part is how little it asks of you. You do not need special equipment, a membership, or a partner. You simply put on shoes and step outside. For many busy people, that low barrier is the real key. A modest habit done every day usually beats an ambitious plan you cannot keep.",
+            "When people think of exercise, they often imagine running, lifting weights, or sweating in a gym. Walking is rarely the first thing that comes to mind. But a daily thirty-minute walk has a long list of benefits: better mood, healthier heart, lower blood pressure, and a clearer head. Compared to hard workouts, walking is gentle on the joints and easy to start.",
+            "Maybe the best part is how little it needs from you. You do not need special equipment, a gym card, or a partner. You simply put on shoes and step outside. For many busy people, that low barrier is the real key. A modest habit done every day usually beats an ambitious plan you cannot keep.",
           ],
           vocab: [
             { w: "underrated", p: "adj", m: "valued less than it deserves", ex: "Walking is an underrated form of exercise." },
@@ -227,8 +227,8 @@ window.WEEK1_READING = {
           title: "Inside a Sleep Cycle",
           intro: "What your brain is doing at three in the morning.",
           paragraphs: [
-            "A healthy night of sleep is not a single state. It is a series of cycles, each lasting about ninety minutes, and each made up of several stages. After you fall asleep, your brain quickly moves into deep sleep, where the body repairs muscles and the immune system. Later in the cycle comes REM sleep — the stage of dreaming and emotional processing.",
-            "If you wake up suddenly in the middle of deep sleep, you often feel groggy and confused. But waking near the end of a cycle, in lighter sleep, is much easier. This is why some people feel better after six hours than after seven and a half: they happened to wake up between cycles. Over time, missing too many cycles creates a 'sleep debt' that the body slowly tries to pay back.",
+            "A good night of sleep is not just one thing. It is a series of cycles. Each cycle lasts about ninety minutes and has several stages inside it. After you fall asleep, your brain quickly moves into deep sleep, where the body fixes its muscles and its immune system. Later in the cycle comes REM sleep — the stage of dreaming, when the brain works through your feelings.",
+            "If you wake up suddenly in the middle of deep sleep, you often feel groggy and confused. But waking up near the end of a cycle, in lighter sleep, is much easier. This is why some people feel better after six hours than after seven and a half: they happened to wake up between cycles. Over time, missing too many cycles creates a 'sleep debt' that the body slowly tries to pay back.",
           ],
           vocab: [
             { w: "REM sleep", p: "noun", m: "the dream stage of sleep, with rapid eye movement", ex: "REM sleep helps process emotions." },

@@ -69,6 +69,29 @@
       });
     },
 
+    /* Repeats for speaking */
+    getConvRepeats(w, d, taskId) {
+      const day = this.getDay(w, d);
+      return (day.tasks[taskId] && day.tasks[taskId].repeats) || 0;
+    },
+    incrementConvRepeats(w, d, taskId) {
+      return this.updateDay(w, d, (day) => {
+        const t = day.tasks[taskId] || { done: false };
+        t.repeats = Math.min(4, (t.repeats || 0) + 1);
+        if (t.repeats >= 4) t.done = true; // Auto-complete if 4 repeats done
+        day.tasks[taskId] = t;
+        return day;
+      });
+    },
+    setConvRepeats(w, d, taskId, count) {
+      return this.updateDay(w, d, (day) => {
+        const t = day.tasks[taskId] || { done: false };
+        t.repeats = count;
+        day.tasks[taskId] = t;
+        return day;
+      });
+    },
+
     /* Self-rating */
     setRating(w, d, skill, val) {
       return this.updateDay(w, d, (day) => {

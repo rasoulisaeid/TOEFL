@@ -60,6 +60,105 @@ window.Views.speaking = function (mount, params) {
       setTimeout(() => location.hash = `#/week/${w}/day/${d}`, 500);
     }
 
+    // ===== New Components: Repeats & Practice =====
+    function repeatsBlock() {
+      const cur = State.getConvRepeats(w, d, conv.id);
+      const wrap = el("div", { class: "repeats-card", style: "margin-bottom:20px; padding:16px; background:var(--card); border:2px solid var(--border); border-bottom-width:5px; border-radius:var(--r-lg)" }, [
+        el("div", { class: "row", style: "justify-content:space-between; align-items:center" }, [
+          el("div", null, [
+            el("div", { style: "font-weight:900; font-size:15px; letter-spacing:-0.01em" }, "Practice Progress"),
+            el("div", { class: "muted", style: "font-size:12px; margin-top:2px" }, "Complete 4 repeats to master this conversation"),
+          ]),
+          el("button", { class: "btn primary sm", onclick: () => openPracticeModal() }, [
+            el("span", { style: "margin-right:6px" }, "▶"), "Practice Mode"
+          ])
+        ]),
+        el("div", { class: "repeat-checks", style: "display:flex; gap:12px; margin-top:16px" }, [1, 2, 3, 4].map(i => {
+          const active = i <= cur;
+          return el("div", {
+            style: `flex:1; height:44px; border-radius:12px; border:2.5px solid ${active ? 'var(--primary)' : 'var(--border)'}; background:${active ? 'var(--primary-soft)' : 'var(--card-2)'}; display:grid; place-items:center; cursor:pointer; transition: all .1s;`,
+            onclick: () => {
+              const next = (i === cur) ? i - 1 : i;
+              State.setConvRepeats(w, d, conv.id, next);
+              UI.toast(`Repeats updated to ${next}/4`);
+              mount.querySelector(".repeats-card").replaceWith(repeatsBlock());
+            }
+          }, [
+            el("span", { style: `font-size:18px; font-weight:900; color:${active ? 'var(--primary-dark)' : 'var(--text-soft)'}` }, active ? "✓" : i)
+          ]);
+        }))
+      ]);
+      return wrap;
+    }
+
+    function openPracticeModal() {
+      UI.modal((m, close) => {
+        const roles = conv.roles || ["Role A", "Role B"];
+        
+        const content = el("div", { class: "col", style: "gap:24px; min-height:300px; justify-content:center; align-items:center; text-align:center" });
+        m.appendChild(content);
+
+        function showRolePicker() {
+          UI.clear(content);
+          content.appendChild(el("h2", { style: "margin:0" }, "Choose your role"));
+          content.appendChild(el("div", { class: "muted" }, "Which part will you speak? Your partner will take the other."));
+          
+          const btns = el("div", { class: "row", style: "gap:12px; width:100%" }, [
+            el("button", { class: "btn big primary", style: "flex:1; padding:30px 10px", onclick: () => startPractice(0) }, [
+              el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, "Role A"),
+              el("div", { style: "font-size:18px; font-weight:900" }, roles[0])
+            ]),
+            el("button", { class: "btn big primary", style: "flex:1; padding:30px 10px", onclick: () => startPractice(1) }, [
+              el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, "Role B"),
+              el("div", { style: "font-size:18px; font-weight:900" }, roles[1])
+            ])
+          ]);
+          content.appendChild(btns);
+        }
+
+        function startPractice(myRoleIdx) {
+          let step = 0;
+          const dialogue = conv.dialogue || [];
+
+          function next() {
+            UI.clear(content);
+            const line = dialogue[step];
+            const isMe = (line.who === 'A' && myRoleIdx === 0) || (line.who === 'B' && myRoleIdx === 1);
+            const whoName = line.who === 'A' ? roles[0] : roles[1];
+
+            content.appendChild(el("div", { class: "muted", style: "font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.05em" }, `Line ${step + 1} of ${dialogue.length}`));
+            
+            const turnBadge = el("div", { 
+              style: `padding:6px 16px; border-radius:999px; font-weight:900; font-size:13px; margin-top:8px; background:${isMe ? 'var(--primary)' : 'var(--card-2)'}; color:${isMe ? 'white' : 'var(--text-soft)'}; border:2px solid ${isMe ? 'var(--primary-dark)' : 'var(--border)'}` 
+            }, isMe ? "Your Turn!" : `${whoName}'s Turn`);
+            content.appendChild(turnBadge);
+
+            const textDisplay = el("div", { 
+              style: "font-size:26px; font-weight:800; line-height:1.4; margin:30px 0; min-height:120px; color:var(--text); letter-spacing:-0.01em" 
+            }, line.line);
+            content.appendChild(textDisplay);
+
+            const doneBtn = el("button", { class: "btn big primary", style: "width:100%; padding:20px; font-size:18px", onclick: () => {
+              step++;
+              if (step < dialogue.length) {
+                next();
+              } else {
+                State.incrementConvRepeats(w, d, conv.id);
+                UI.toast("Practice complete! +1 Repeat checked.");
+                close();
+                // We reload or rerender here to show the new check
+                window.location.reload();
+              }
+            }}, step === dialogue.length - 1 ? "Finish Session" : "Next Line →");
+            content.appendChild(doneBtn);
+          }
+          next();
+        }
+
+        showRolePicker();
+      });
+    }
+
     // ===== Build Header =====
     const head = el("div", { class: "page-head" }, [
       el("div", null, [
@@ -85,6 +184,7 @@ window.Views.speaking = function (mount, params) {
 
     // LEFT: dialogue
     const left = el("div", { class: "col" });
+    left.appendChild(repeatsBlock());
     left.appendChild(el("div", { class: "card" }, [dialogueBlock()]));
 
     // RIGHT: vocab, rating, notes

@@ -19,8 +19,8 @@ window.WEEK1_WRITING = {
           title: "The morning rush",
           intro: "Fill the 10 blanks. Tap a word from the pool, tap a blank to drop it.",
           paragraphs: [
-            "The morning {0} starts at 6:30. Maria pulls her first {1} while the room is still dark. Outside, the city is just waking up, and the smell of fresh {2} drifts onto the wet street. By seven, a small {3} has already formed at the {4}.",
-            "She {5} most of the faces. The man in the green coat always orders a flat white without {6}. The woman with the laptop orders a long {7} every Tuesday. Maria likes this part of the day: {8} is in a hurry, the music is {9}, and the world feels still.",
+            "The morning {0} starts at 6:30. Maria makes her first {1} while the room is still dark. Outside, the city is just waking up, and the smell of fresh {2} moves out onto the wet street. By seven, a small {3} has already formed at the {4}.",
+            "She {5} most of the faces. The man in the green coat always orders a flat white without {6}. The woman with the laptop orders a long {7} every Tuesday. Maria likes this part of the day: {8} is in a hurry, the music is {9}, and the world feels calm.",
           ],
           blanks: ["rush", "espresso", "coffee", "line", "counter", "knows", "sugar", "americano", "nobody", "soft"],
           pool: ["rush", "espresso", "coffee", "line", "counter", "knows", "sugar", "americano", "nobody", "soft",
