@@ -42,67 +42,89 @@
       return next;
     },
     migrateXP() {
-      // One-time migration to account for past done tasks
-      if (Storage.get("xp_migrated_v2", false)) return;
+      if (Storage.get("xp_migrated_v3", false)) return;
       
       let total = 0;
       const allData = Storage.getAll();
+      console.log("XP Migration v3 started. Keys found:", Object.keys(allData).length);
 
       // 1. Scan all weeks for core tasks
       for (let w = 1; w <= 25; w++) {
         const wk = allData[`week:${w}`];
-        if (!wk) continue;
+        if (!wk || !wk.days) continue;
         Object.keys(wk.days).forEach(dNum => {
           const day = wk.days[dNum];
+          if (!day.tasks) return;
           Object.keys(day.tasks).forEach(tid => {
             const t = day.tasks[tid];
-            // Speaking/Story repeats (even if not marked 'done')
-            if (tid.includes("story")) {
-              total += (t.repeats || 0) * 5;
-            } else if (tid.includes("together") || tid.includes("solo")) {
-              total += (t.repeats || 0) * 3;
+            if (!t) return;
+
+            // Repeats (Speaking/Story)
+            const reps = parseInt(t.repeats || 0);
+            if (reps > 0) {
+              if (tid.includes("story")) {
+                total += reps * 5;
+                console.log(`+${reps * 5} XP (Story ${tid} repeats: ${reps})`);
+              } else if (tid.includes("together") || tid.includes("solo")) {
+                total += reps * 3;
+                console.log(`+${reps * 3} XP (Speaking ${tid} repeats: ${reps})`);
+              }
             }
             
-            // Writing completions
+            // Writing completions (Done status)
             if (t.done) {
-              if (tid.includes("cloze")) total += 3;
-              else if (tid.includes("scramble")) total += 5;
-              else if (tid.includes("guided")) total += 10;
-              else if (!tid.includes("together") && !tid.includes("solo")) {
-                // Other tasks (reading/listening etc) default 1xp for 'done' status
-                // (MCQ logic below handles specific Qs, but 'done' button counts as 1 bonus)
+              if (tid.includes("cloze")) {
+                total += 3;
+                console.log("+3 XP (Cloze complete)");
+              } else if (tid.includes("scramble")) {
+                total += 5;
+                console.log("+5 XP (Scramble complete)");
+              } else if (tid.includes("guided")) {
+                total += 10;
+                console.log("+10 XP (Guided complete)");
+              } else if (!tid.includes("together") && !tid.includes("solo")) {
                 total += 1;
+                console.log("+1 XP (Task complete)");
               }
             }
           });
         });
       }
       
-      // 2. Scan all storage keys for MCQ and Dictation
+      // 2. MCQs and Dictation
       Object.keys(allData).forEach(k => {
         if (k.startsWith("mcq:")) {
           const s = allData[k];
           if (s && s.answers) {
-            // Count first-try correct answers (in mcq.js we save choice idx, but here we can't easily verify 'correct' without data)
-            // Actually, we'll just count total answers provided as proxy for effort
-            total += s.answers.filter(a => a != null).length;
+            const count = s.answers.filter(a => a != null).length;
+            if (count > 0) {
+              total += count;
+              console.log(`+${count} XP (MCQ questions)`);
+            }
           }
         } else if (k.startsWith("dictation:")) {
           const s = allData[k];
-          if (s && s.completed) total += 3;
+          if (s && s.completed) {
+            total += 3;
+            console.log("+3 XP (Dictation complete)");
+          }
         }
       });
       
-      // 3. Leitner history
+      // 3. Leitner
       const cards = this.getCards();
+      let lCount = 0;
       cards.forEach(c => {
-        const history = c.history || [];
-        total += history.length; // 1xp per review
+        lCount += (c.history || []).length;
       });
+      if (lCount > 0) {
+        total += lCount;
+        console.log(`+${lCount} XP (Vocab reviews)`);
+      }
 
       Storage.set("totalXP", total);
-      Storage.set("xp_migrated_v2", true);
-      console.log(`XP Migration v2 complete: ${total} XP granted.`);
+      Storage.set("xp_migrated_v3", true);
+      console.log(`XP Migration v3 complete. TOTAL: ${total} XP.`);
     },
 
     /* ===== Weeks / Days ===== */
