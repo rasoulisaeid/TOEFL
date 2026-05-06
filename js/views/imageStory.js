@@ -35,7 +35,7 @@ window.Views.imageStory = function (mount, params) {
         el("span", null, `TOEFL · Image story · ${slot}`),
       ]),
       el("h1", null, story.title),
-      el("div", { class: "muted", style: "margin-top:6px" }, "Generate the 8-panel grid in Gemini Nano Banana, paste it below, then describe each scene one by one."),
+      el("div", { class: "muted", style: "margin-top:4px" }, "Describe the story panel by panel to practice your speaking and narrative skills."),
     ]),
     el("div", { class: "actions" }, [
       el("button", { class: "btn", onclick: () => location.hash = `#/week/${w}/day/${d}` }, "Back"),
