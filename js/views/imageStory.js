@@ -286,13 +286,7 @@ window.Views.imageStory = function (mount, params) {
       el("div", { class: "repeat-checks", style: "display:flex; gap:12px; margin-top:16px" }, [1, 2].map(i => {
         const active = i <= cur;
         return el("div", {
-          style: `flex:1; height:44px; border-radius:12px; border:2.5px solid ${active ? 'var(--primary)' : 'var(--border)'}; background:${active ? 'var(--primary-soft)' : 'var(--card-2)'}; display:grid; place-items:center; cursor:pointer; transition: all .1s;`,
-          onclick: () => {
-            const next = (i === cur) ? i - 1 : i;
-            State.setConvRepeats(w, d, story.id + ":story", next);
-            UI.toast(`Story repeats updated to ${next}/2`);
-            Views.imageStory(mount, params);
-          }
+          style: `flex:1; height:44px; border-radius:12px; border:2.5px solid ${active ? 'var(--primary)' : 'var(--border)'}; background:${active ? 'var(--primary-soft)' : 'var(--card-2)'}; display:grid; place-items:center; cursor:default; transition: all .1s;`,
         }, [
           el("span", { style: `font-size:18px; font-weight:900; color:${active ? 'var(--primary-dark)' : 'var(--text-soft)'}` }, active ? "✓" : i)
         ]);

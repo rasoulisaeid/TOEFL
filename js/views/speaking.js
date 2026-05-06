@@ -94,13 +94,7 @@ window.Views.speaking = function (mount, params) {
         el("div", { class: "repeat-checks", style: "display:flex; gap:12px; margin-top:16px" }, [1, 2, 3, 4].map(i => {
           const active = i <= cur;
           return el("div", {
-            style: `flex:1; height:44px; border-radius:12px; border:2.5px solid ${active ? 'var(--primary)' : 'var(--border)'}; background:${active ? 'var(--primary-soft)' : 'var(--card-2)'}; display:grid; place-items:center; cursor:pointer; transition: all .1s;`,
-            onclick: () => {
-              const next = (i === cur) ? i - 1 : i;
-              State.setConvRepeats(w, d, conv.id, next);
-              UI.toast(`Repeats updated to ${next}/4`);
-              mount.querySelector(".repeats-card").replaceWith(repeatsBlock());
-            }
+            style: `flex:1; height:44px; border-radius:12px; border:2.5px solid ${active ? 'var(--primary)' : 'var(--border)'}; background:${active ? 'var(--primary-soft)' : 'var(--card-2)'}; display:grid; place-items:center; cursor:default; transition: all .1s;`,
           }, [
             el("span", { style: `font-size:18px; font-weight:900; color:${active ? 'var(--primary-dark)' : 'var(--text-soft)'}` }, active ? "✓" : i)
           ]);
