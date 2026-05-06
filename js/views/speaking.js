@@ -106,12 +106,18 @@ window.Views.speaking = function (mount, params) {
         let myRole = null; 
 
         function onSync(data) {
-          if (!data) return;
-          if (data.roles) session.roles = { ...session.roles, ...data.roles };
-          if (data.step !== undefined) session.step = data.step;
+          // If we have data, merge it into our local session state
+          if (data) {
+            if (data.roles) session.roles = { ...session.roles, ...data.roles };
+            if (data.step !== undefined) session.step = data.step;
+          }
           
-          if (myRole === null) showRolePicker();
-          else renderStep();
+          // Always render something so the modal isn't empty
+          if (myRole === null) {
+            showRolePicker();
+          } else {
+            renderStep();
+          }
         }
 
         function showRolePicker() {
