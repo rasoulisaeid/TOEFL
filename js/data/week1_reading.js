@@ -280,8 +280,8 @@ window.WEEK1_READING = {
           title: "Athleisure: Sweatpants Got Glamorous",
           intro: "When workout clothes became everyday clothes.",
           paragraphs: [
-            "Twenty years ago, wearing yoga pants to a coffee shop would have raised eyebrows. Today, no one looks twice. The rise of 'athleisure' — clothing designed for both the gym and ordinary life — is one of the biggest shifts in modern fashion. Brands like Lululemon and Alo built billion-dollar businesses by mixing performance fabrics with the cuts and colors of streetwear.",
-            "Why did this happen? Comfort is the obvious answer, but it is not the only one. Athleisure also signals a certain lifestyle: active, healthy, intentional. A pair of high-quality leggings has become a wardrobe staple in many cities, blurring the line between what we wear to exercise and what we wear to live. For better or worse, the gym has come home with us.",
+            "Twenty years ago, wearing yoga pants to a coffee shop would have raised eyebrows. Today, no one looks twice. The rise of 'athleisure' — clothes made for both the gym and normal life — is one of the biggest changes in modern fashion. Brands like Lululemon and Alo built billion-dollar businesses by mixing performance fabrics with the shapes and colors of streetwear.",
+            "Why did this happen? Comfort is the easy answer, but it is not the only one. Athleisure also shows a kind of lifestyle: active, healthy, careful about choices. A pair of good leggings has become a wardrobe staple in many cities, blurring the line between what we wear to exercise and what we wear to live. For better or worse, the gym has come home with us.",
           ],
           vocab: [
             { w: "athleisure", p: "noun", m: "clothing designed for both sport and casual wear", ex: "Athleisure is now standard daily wear." },
@@ -340,8 +340,8 @@ window.WEEK1_READING = {
           title: "The Hybrid Work Compromise",
           intro: "Three days at the office, two days at home — does it actually work?",
           paragraphs: [
-            "Since 2020, hybrid work has gone from a strange experiment to the new normal in many companies. The idea is simple: spend part of the week at the office, part at home. In theory, you get the best of both worlds — focus at home, collaboration at the office. In practice, it is messier. Teams must agree on which days are 'in person,' and managers must learn to lead people they cannot see all day.",
-            "What seems to work best is a small amount of structure. When teams pick fixed days together — say, Tuesday and Thursday — they can plan meetings and lunches with confidence. The rest of the week becomes deep work time at home. Without that structure, the office can feel half-empty every day, and the benefits of being together quietly disappear.",
+            "Since 2020, hybrid work has gone from a strange new idea to the new normal in many companies. The idea is simple: spend part of the week at the office and part at home. In theory, you get the best of both worlds — focus at home, working together at the office. In real life, it is messier. Teams have to agree on which days are 'in person,' and managers have to learn how to lead people they cannot see all day.",
+            "What seems to work best is a little bit of structure. When teams pick the same fixed days together — for example, Tuesday and Thursday — they can plan their meetings and lunches with confidence. The rest of the week becomes deep work time at home. Without this kind of structure, the office can feel half-empty every day, and the good parts of being together quietly disappear.",
           ],
           vocab: [
             { w: "hybrid work", p: "noun", m: "mixing office and remote work", ex: "She likes the hybrid work model." },
@@ -392,8 +392,8 @@ window.WEEK1_READING = {
           title: "Open Offices and Concentration",
           intro: "Did knocking down the walls really make us more creative?",
           paragraphs: [
-            "When companies began opening up their offices in the 1990s, the promise was simple: more conversation, more ideas, better teamwork. Fast-forward thirty years, and the picture is more complicated. A study from Harvard tracked employees before and after a move to an open-plan office. Surprisingly, face-to-face conversation dropped by about seventy percent, while emails and chat messages went up. With no walls to filter noise, people retreated into headphones.",
-            "The lesson is not that open offices always fail, but that human attention is fragile. Even small interruptions — a phone ringing, a colleague walking by — can break a chain of thought that took twenty minutes to build. Designers now favor mixed spaces: open zones for chats and quiet rooms for focus, giving people a real choice about how they want to work.",
+            "When companies began opening up their offices in the 1990s, the promise was simple: more talking, more ideas, better teamwork. Thirty years later, the picture is not so simple. A study from Harvard followed workers before and after they moved to an open-plan office. Surprisingly, face-to-face talking dropped by about seventy percent, while emails and chat messages went up. With no walls to block the noise, people just retreated into their headphones.",
+            "The lesson is not that open offices always fail, but that human attention is fragile. Even small interruptions — a phone ringing, a colleague walking by — can break a thought that took twenty minutes to build. Designers now prefer mixed spaces: open zones for chats and quiet rooms for focus, giving people a real choice about how they want to work.",
           ],
           vocab: [
             { w: "open office", p: "noun", m: "an office without walls between desks", ex: "Many startups use open offices." },
@@ -445,8 +445,8 @@ window.WEEK1_READING = {
           title: "Smart Casual: A New Office Uniform",
           intro: "How dress codes changed after the pandemic.",
           paragraphs: [
-            "For decades, the office uniform was clear: a suit, a tie, polished shoes. The pandemic broke that habit overnight. After months of working in pajamas, very few people wanted to return to stiff collars and tight jackets. What replaced the suit was 'smart casual': clean sneakers, well-cut jeans or chinos, a soft blazer, and a simple shirt. The look says, 'I am here to work, but I am also a person.'",
-            "Smart casual is not lazy — it is just smarter. The fabrics are still high quality, the cuts are still sharp, but everything feels lighter. For many companies, this shift signals a deeper change: success is no longer measured by how uncomfortable your clothes are, but by what you actually deliver. The blazer remains; the tie has quietly disappeared.",
+            "For many years, the office uniform was clear: a suit, a tie, polished shoes. The pandemic broke that habit overnight. After months of working in pajamas, very few people wanted to go back to stiff collars and tight jackets. What replaced the suit was 'smart casual': clean sneakers, well-cut jeans or chinos, a soft blazer, and a simple shirt. The look says, 'I am here to work, but I am also a person.'",
+            "Smart casual is not lazy — it is just smarter. The materials are still good quality, the shapes are still neat, but everything feels lighter. For many companies, this change shows a deeper shift: success is no longer measured by how uncomfortable your clothes are, but by what you actually deliver. The blazer stays; the tie has quietly disappeared.",
           ],
           vocab: [
             { w: "smart casual", p: "phrase", m: "neat but not formal clothing", ex: "Smart casual is the new office norm." },

@@ -168,7 +168,7 @@ window.WEEK1_LISTENING = {
           category: "general",
           title: "Why I started walking",
           intro: "A short personal story.",
-          text: "Two years ago, I had knee surgery. Nothing serious, but the doctor told me I would have to forget running for about a year. At first, I thought walking would be boring. It is not exciting, it is not impressive — nobody posts a photo on social media after a long walk. But the first time I went out on a quiet Sunday morning, I noticed something I had been missing for years: time to think. By the third week, I was walking forty-five minutes every day. My knee healed. My head also felt clearer. Two years later, I still walk almost every day. I never went back to running, and honestly, I do not miss it.",
+          text: "Two years ago, I had knee surgery. Nothing serious, but the doctor told me I would have to forget running for about a year. At first, I thought walking would be boring. It is not exciting, it is not cool — nobody posts a photo on social media after a long walk. But the first time I went out on a quiet Sunday morning, I noticed something I had been missing for years: time to think. By the third week, I was walking forty-five minutes every day. My knee healed. My head also felt clearer. Two years later, I still walk almost every day. I never went back to running, and honestly, I do not miss it.",
           vocab: [
             { w: "knee surgery", p: "phrase", m: "an operation on the knee", ex: "He had knee surgery last year." },
             { w: "low-impact", p: "adj", m: "gentle on the body", ex: "Walking is low-impact." },
@@ -217,7 +217,7 @@ window.WEEK1_LISTENING = {
           category: "scientific",
           title: "The hidden cost of sleep loss",
           intro: "A short academic-style talk.",
-          text: "Most adults need between seven and nine hours of sleep per night. Yet many of us regularly sleep five or six. We tell ourselves this is fine, but research strongly disagrees. Even one hour less sleep per night for a week leads to measurable drops in attention, memory, and emotional control. Worse, this 'sleep debt' does not simply disappear when we sleep in on the weekend. The brain repays it slowly. Long-term, regular sleep loss is now linked to higher risks of weight gain, anxiety, and even certain forms of dementia. The takeaway is simple: sleep is not a luxury, and short-term shortcuts always come with a long-term bill.",
+          text: "Most adults need between seven and nine hours of sleep per night. But many of us often sleep only five or six. We tell ourselves this is fine, but research strongly disagrees. Even one hour less sleep per night for a week leads to clear drops in attention, memory, and emotional control. Worse, this 'sleep debt' does not simply go away when we sleep in on the weekend. The brain pays it back slowly. Over the long term, regular sleep loss is now linked to higher risks of weight gain, anxiety, and even some forms of dementia. The lesson is simple: sleep is not a luxury, and short-term shortcuts always come with a long-term bill.",
           vocab: [
             { w: "sleep debt", p: "phrase", m: "the missing sleep you owe your body", ex: "She has built up a sleep debt." },
             { w: "to repay", p: "verb", m: "to give back over time", ex: "The body repays sleep debt slowly." },
@@ -261,7 +261,7 @@ window.WEEK1_LISTENING = {
           category: "fashion",
           title: "How yoga pants conquered the office",
           intro: "A short cultural piece.",
-          text: "Twenty-five years ago, you would not see a single pair of yoga pants outside a gym. They were sportswear, full stop. Then in two thousand, a small Canadian company called Lululemon opened in Vancouver. Their leggings were better cut, more comfortable, and surprisingly flattering. Slowly, women began wearing them after class — to brunch, to the grocery store, even to the office on Fridays. Today, athleisure is a forty-billion-dollar industry, and the line between gym and street has almost disappeared. Designers from Paris and Milan now show leggings in their main collections. Sweatpants, of all things, have become high fashion.",
+          text: "Twenty-five years ago, you would not see a single pair of yoga pants outside a gym. They were sportswear, full stop. Then in two thousand, a small Canadian company called Lululemon opened in Vancouver. Their leggings had a better shape, were more comfortable, and surprisingly flattering. Slowly, women began wearing them after class — to brunch, to the grocery store, even to the office on Fridays. Today, athleisure is a forty-billion-dollar industry, and the line between gym and street has almost gone. Designers from Paris and Milan now show leggings in their main collections. Sweatpants, of all things, have become high fashion.",
           vocab: [
             { w: "leggings", p: "noun", m: "tight stretchy pants", ex: "Black leggings under a long shirt." },
             { w: "flattering", p: "adj", m: "making someone look attractive", ex: "A flattering cut." },
@@ -312,7 +312,7 @@ window.WEEK1_LISTENING = {
           category: "general",
           title: "First week on a hybrid team",
           intro: "A casual reflection.",
-          text: "My first week at the new company was honestly a bit confusing. The office is open three days a week — Tuesday, Wednesday, and Thursday — and on those days the place is alive. People bring their dogs, the kitchen is full at lunch, meetings spill out into the corridor. But on Mondays and Fridays, the building is almost empty. I tried to come in last Monday, just to settle in quietly. There were maybe eight people on the whole floor. It was peaceful, but it also felt strange, like a hotel after the guests have left. By Friday I had figured it out: hybrid is a rhythm, not a rule. You learn the days the building has energy, and you plan your work around them.",
+          text: "My first week at the new company was honestly a bit confusing. The office is open three days a week — Tuesday, Wednesday, and Thursday — and on those days the place is alive. People bring their dogs, the kitchen is full at lunch, meetings spill out into the hallway. But on Mondays and Fridays, the building is almost empty. I tried to come in last Monday, just to settle in quietly. There were maybe eight people on the whole floor. It was peaceful, but it also felt strange, like a hotel after the guests have left. By Friday I had figured it out: hybrid is a flow, not a rule. You learn the days the building has energy, and you plan your work around them.",
           vocab: [
             { w: "hybrid (work)", p: "adj", m: "mixing office and remote", ex: "A hybrid team." },
             { w: "to spill (out)", p: "verb", m: "to extend beyond a place naturally", ex: "Meetings spill into the hallway." },
@@ -356,7 +356,7 @@ window.WEEK1_LISTENING = {
           category: "scientific",
           title: "Notifications and attention",
           intro: "A short academic-style talk.",
-          text: "Every notification on your phone has a small but real cost. When you hear a ping, even if you do not pick up the phone, your brain briefly switches modes — from focused work to scanning for new information. That switch takes roughly a second to begin and longer to recover from. A study at the University of California suggested that, after an interruption, it can take more than twenty minutes to fully return to deep concentration. Multiply that by the dozens of notifications most of us receive each day, and the picture becomes clear: notifications do not just steal seconds, they break the structure of an entire morning. Turning them off is not laziness. It is, in fact, the most respectful thing you can do for your attention.",
+          text: "Every notification on your phone has a small but real cost. When you hear a ping, even if you do not pick up the phone, your brain quickly switches modes — from focused work to looking for new information. That switch takes about a second to start and longer to come back from. A study at the University of California found that, after an interruption, it can take more than twenty minutes to fully come back to deep focus. Multiply that by the many notifications most of us get each day, and the picture is clear: notifications do not just steal seconds; they break the shape of a whole morning. Turning them off is not lazy. In fact, it is the most respectful thing you can do for your attention.",
           vocab: [
             { w: "notification", p: "noun", m: "a small alert from an app", ex: "Constant notifications hurt focus." },
             { w: "to ping", p: "verb", m: "to make a short alert sound", ex: "His phone pinged again." },
@@ -405,7 +405,7 @@ window.WEEK1_LISTENING = {
           category: "fashion",
           title: "Why startups still wear hoodies",
           intro: "A short cultural commentary.",
-          text: "Walk into any tech startup and you will probably see hoodies, sneakers, and a lot of jeans. The look has not changed much since two thousand and ten, even as startups have become richer, larger, and more powerful. Some people see this as laziness, but the original idea was different. Wearing a hoodie was a quiet statement: 'we are not the old corporate world. We are not impressed by suits. We are here to build things.' Today, that statement is less radical, but the uniform survives. A hoodie costs almost nothing to wash, fits in any bag, and signals that you are doing the work, not performing it. In a strange way, it has become its own kind of suit.",
+          text: "Walk into any tech startup and you will probably see hoodies, sneakers, and a lot of jeans. The look has not changed much since two thousand and ten, even as startups have become richer, bigger, and more powerful. Some people see this as lazy, but the original idea was different. Wearing a hoodie was a quiet message: 'we are not the old corporate world. We are not impressed by suits. We are here to build things.' Today, that message is less new, but the uniform stays. A hoodie costs almost nothing to wash, fits in any bag, and shows that you are doing the work, not performing it. In a strange way, it has become its own kind of suit.",
           vocab: [
             { w: "hoodie", p: "noun", m: "a sweatshirt with a hood", ex: "He wore a black hoodie to work." },
             { w: "uniform", p: "noun", m: "the same clothes a group wears", ex: "Hoodies are the startup uniform." },

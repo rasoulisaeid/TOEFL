@@ -115,7 +115,7 @@
       const wk = this.getWeek(w);
       let done = 0, total = 0;
       const meta = window.PLAN.weeks[w - 1];
-      const tasksPerDay = meta && meta.tasksPerDay ? meta.tasksPerDay : 8;
+      const tasksPerDay = meta && meta.tasksPerDay ? meta.tasksPerDay : 13;
       for (let d = 1; d <= 7; d++) {
         const day = wk.days[d] || { tasks: {} };
         const taskIds = Object.keys(day.tasks);

@@ -54,12 +54,13 @@ window.Views.week = function (mount, params) {
 function dayCard(w, d) {
   const day = State.getDay(w, d.day);
   const taskCount = Object.keys(day.tasks).filter(k => day.tasks[k].done).length;
-  const progress = Math.min(1, taskCount / 8);
+  const totalTasks = (PLAN.weeks[w - 1] && PLAN.weeks[w - 1].tasksPerDay) || 13;
+  const progress = Math.min(1, taskCount / totalTasks);
   return UI.el("div", { class: "day-card", onclick: () => location.hash = `#/week/${w}/day/${d.day}` }, [
     UI.el("div", { class: "dnum" }, `Day ${d.day}`),
     UI.el("div", { class: "dtopic" }, d.topic),
     UI.el("div", { class: "dsub" }, d.summary),
     UI.el("div", { class: "dprog" }, UI.el("div", { style: `width:${UI.pct(progress)}%` })),
-    UI.el("div", { class: "muted", style: "font-size:12px" }, `${taskCount}/8 tasks`),
+    UI.el("div", { class: "muted", style: "font-size:12px" }, `${taskCount}/${totalTasks} tasks`),
   ]);
 }
