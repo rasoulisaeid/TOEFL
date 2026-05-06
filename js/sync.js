@@ -218,6 +218,33 @@
         deleteImage(id);
       };
     }
+
+    // Patch AudioDB to sync ElevenLabs audio
+    if (window.AudioDB) {
+      const origAudioSet = window.AudioDB.set.bind(window.AudioDB);
+      window.AudioDB.set = async function (id, data) {
+        await origAudioSet(id, data);
+        let syncData = data;
+        if (data instanceof Blob) {
+          syncData = await blobToBase64(data);
+        }
+        pushAudio(id, syncData);
+      };
+      const origAudioGet = window.AudioDB.get.bind(window.AudioDB);
+      window.AudioDB.get = async function (id) {
+        let local = await origAudioGet(id);
+        if (!local) {
+          local = await pullAudio(id);
+          if (local) await origAudioSet(id, local);
+        }
+        return local;
+      };
+      const origAudioDel = window.AudioDB.delete.bind(window.AudioDB);
+      window.AudioDB.delete = async function (id) {
+        await origAudioDel(id);
+        deleteAudio(id);
+      };
+    }
   }
 
   async function deleteImage(id) {
@@ -243,6 +270,45 @@
       const remote = await res.json();
       return remote ? remote.data : null;
     } catch (e) { return null; }
+  }
+
+  function audioApiUrl(id) {
+    const safeId = id.replace(/:/g, "_");
+    return `${DB_URL}/families/${FAMILY_KEY}/audio/${safeId}.json`;
+  }
+ 
+  async function pushAudio(id, data) {
+    try {
+      await fetch(audioApiUrl(id), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data, updatedAt: Date.now(), clientId: CLIENT_ID })
+      });
+    } catch (e) { console.error("🔴 Audio push failed:", e); }
+  }
+ 
+  async function pullAudio(id) {
+    try {
+      const res = await fetch(audioApiUrl(id));
+      if (!res.ok) return null;
+      const remote = await res.json();
+      return remote ? remote.data : null;
+    } catch (e) { return null; }
+  }
+ 
+  async function deleteAudio(id) {
+    try {
+      await fetch(audioApiUrl(id), { method: "DELETE" });
+    } catch (e) { console.error("🔴 Audio delete failed:", e); }
+  }
+ 
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   /* ── Bootstrap: runs automatically on page load ────── */

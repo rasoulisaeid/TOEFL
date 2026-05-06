@@ -23,35 +23,35 @@
     });
   }
 
-  async function dbGet(key) {
-    const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const r = tx.objectStore(STORE_NAME).get(key);
-      r.onsuccess = () => resolve(r.result);
-      r.onerror = () => reject(r.error);
-    });
-  }
-
-  async function dbSet(key, val) {
-    const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const r = tx.objectStore(STORE_NAME).put(val, key);
-      r.onsuccess = () => resolve();
-      r.onerror = () => reject(r.error);
-    });
-  }
-
-  async function dbDelete(key) {
-    const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const r = tx.objectStore(STORE_NAME).delete(key);
-      r.onsuccess = () => resolve();
-      r.onerror = () => reject(r.error);
-    });
-  }
+  window.AudioDB = {
+    async get(id) {
+      const db = await getDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const r = tx.objectStore(STORE_NAME).get(id);
+        r.onsuccess = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+      });
+    },
+    async set(id, val) {
+      const db = await getDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const r = tx.objectStore(STORE_NAME).put(val, id);
+        r.onsuccess = () => resolve();
+        r.onerror = () => reject(r.error);
+      });
+    },
+    async delete(id) {
+      const db = await getDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const r = tx.objectStore(STORE_NAME).delete(id);
+        r.onsuccess = () => resolve();
+        r.onerror = () => reject(r.error);
+      });
+    }
+  };
 
   function getKey() {
     return Storage.get("elevenlabs:key", DEFAULT_KEY);
@@ -65,13 +65,14 @@
    * Returns a Blob URL that can be set as <audio src="...">.
    */
   async function getOrCreate(id, text, voiceId, opts = {}) {
-    const cached = await dbGet(id);
-    if (cached && cached instanceof Blob) {
-      return URL.createObjectURL(cached);
-    }
-    if (cached && cached.byteLength) {
-      const blob = new Blob([cached], { type: "audio/mpeg" });
-      return URL.createObjectURL(blob);
+    const cached = await AudioDB.get(id);
+    if (cached) {
+      if (cached instanceof Blob) return URL.createObjectURL(cached);
+      if (cached.byteLength) return URL.createObjectURL(new Blob([cached], { type: "audio/mpeg" }));
+      // If it's a base64 string (from Firebase)
+      if (typeof cached === "string" && cached.startsWith("data:audio")) {
+        return cached;
+      }
     }
 
     const key = getKey();
@@ -103,12 +104,12 @@
       throw new Error(`ElevenLabs ${resp.status}: ${errText.slice(0, 200)}`);
     }
     const blob = await resp.blob();
-    try { await dbSet(id, blob); } catch (e) { console.warn("audio cache set failed", e); }
+    try { await AudioDB.set(id, blob); } catch (e) { console.warn("audio cache set failed", e); }
     return URL.createObjectURL(blob);
   }
 
   async function clearCache(id) {
-    if (id) return dbDelete(id);
+    if (id) return AudioDB.delete(id);
     const db = await getDB();
     return new Promise((resolve) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
@@ -118,7 +119,7 @@
   }
 
   async function isCached(id) {
-    const v = await dbGet(id);
+    const v = await AudioDB.get(id);
     return !!v;
   }
 
