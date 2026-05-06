@@ -32,7 +32,7 @@ window.Views.imageStory = function (mount, params) {
         " · ",
         el("a", { onclick: () => location.hash = `#/week/${w}/day/${d}` }, `Day ${d}`),
         " · ",
-        el("span", null, `TOEFL · Image story · ${slot}`),
+        el("span", null, `Image story · ${slot === "together" ? "Image 1" : "Image 2"}`),
       ]),
       el("h1", null, story.title),
       el("div", { class: "muted", style: "margin-top:4px" }, "Describe the story panel by panel to practice your speaking and narrative skills."),
@@ -80,21 +80,21 @@ window.Views.imageStory = function (mount, params) {
 
   const gridSection = el("div", { style: "margin-bottom:20px" }, sceneGridCard());
   const repeatsSection = el("div", { style: "margin-bottom:20px" }, repeatsStoryBlock());
-  const pasteSection = el("div", null, pasteCard());
-  
-  const bottomRow = el("div", { class: "row", style: "gap:20px; align-items: flex-start" }, [
+  const pasteSection = el("div", { style: "flex:1" }, pasteCard());
+
+  const setupRow = el("div", { class: "row", style: "gap:20px; align-items: flex-start; margin-bottom:20px" }, [
     el("div", { style: "flex:1" }, promptCard()),
-    el("div", { style: "flex:1" }, [
-      pasteSection,
-      el("div", { style: "margin-top:10px" }, [
-        el("button", { class: "btn primary", style: "width:100%", onclick: () => completeStory() }, "Mark story complete →"),
-      ])
-    ])
+    pasteSection,
+  ]);
+
+  const completeRow = el("div", { style: "margin-top:20px" }, [
+    el("button", { class: "btn primary", style: "width:100%", onclick: () => completeStory() }, "Mark story complete →"),
   ]);
 
   layout.appendChild(repeatsSection);
+  layout.appendChild(setupRow);
   layout.appendChild(gridSection);
-  layout.appendChild(bottomRow);
+  layout.appendChild(completeRow);
   mount.appendChild(layout);
 
   function rerenderImageParts() {

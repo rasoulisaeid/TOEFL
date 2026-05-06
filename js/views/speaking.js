@@ -82,7 +82,7 @@ window.Views.speaking = function (mount, params) {
               onclick: () => {
                 if (confirm("Reset practice repeats for this task?")) {
                   State.setConvRepeats(w, d, conv.id, 0);
-                  Speaking.render();
+                  Views.speaking(mount, params);
                 }
               }
             }, "↺"),
@@ -274,12 +274,12 @@ window.Views.speaking = function (mount, params) {
           " · ",
           el("a", { onclick: () => location.hash = `#/week/${w}/day/${d}` }, `Day ${d}`),
           " · ",
-          el("span", null, `TOEFL · Speaking · ${slot}`),
+          el("span", null, `Speaking · ${slot === "together" ? "Conv 1" : "Conv 2"}`),
         ]),
         el("h1", null, conv.title),
       ]),
       el("div", { class: "actions" }, [
-        el("span", { class: `chip ${slot === "together" ? "" : "blue"}` }, slot === "together" ? "Together" : "Solo"),
+        el("span", { class: `chip ${slot === "together" ? "" : "blue"}` }, slot === "together" ? "Conv 1" : "Conv 2"),
         el("button", { class: "btn", onclick: () => location.hash = `#/week/${w}/day/${d}` }, "Back"),
       ]),
     ]);

@@ -268,6 +268,21 @@ function buildCloze(w, d, task) {
   }
 }
 
+function shuffleIndices(n, words, correctSentence) {
+  const correctOrder = correctSentence ? correctSentence.split(/\s+/) : null;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const arr = Array.from({ length: n }, (_, i) => i);
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    if (!words || !correctOrder) return arr;
+    const built = arr.map((idx) => words[idx]);
+    if (built.join(" ").toLowerCase() !== correctOrder.join(" ").toLowerCase()) return arr;
+  }
+  return Array.from({ length: n }, (_, i) => n - 1 - i);
+}
+
 function encourage(correct, total) {
   const r = correct / total;
   if (r === 1) return "Perfect! 🌟 Every word landed where it belonged.";
@@ -284,12 +299,21 @@ function buildScramble(w, d, task) {
   const { el } = UI;
   const wrap = el("div", { class: "col" });
 
+  const stateKey = `scramble:${task.id}`;
+  const stored = Storage.get(stateKey, {});
+  const state = {
+    chosen: task.phrases.map((_, i) => (stored.chosen && stored.chosen[i]) || []),
+    solved: task.phrases.map((_, i) => (stored.solved && stored.solved[i]) || false),
+    displayOrder: task.phrases.map((p, i) => (stored.displayOrder && stored.displayOrder[i]) || shuffleIndices(p.scrambled.length, p.scrambled, p.correct)),
+  };
+  function save() { Storage.set(stateKey, state); }
+
   wrap.appendChild(el("div", { class: "card" }, [
     el("div", { class: "row" }, [
       el("span", { class: `cat-pill ${task.category}` }, [el("span", null, "🔬"), " ", catLabelW(task.category)]),
       el("span", { class: "spacer" }),
       el("button", { class: "btn sm", onclick: () => {
-        Storage.delete(`scramble:${task.id}`);
+        Storage.delete(stateKey);
         UI.toast("Reset");
         location.reload();
       }}, "↺ Reset"),
@@ -298,15 +322,7 @@ function buildScramble(w, d, task) {
     task.intro ? el("div", { class: "muted", style: "margin-bottom:6px" }, task.intro) : null,
   ]));
 
-  const stored = Storage.get(stateKey, {});
-  const state = {
-    chosen: task.phrases.map((_, i) => (stored.chosen && stored.chosen[i]) || []),
-    solved: task.phrases.map((_, i) => (stored.solved && stored.solved[i]) || false),
-  };
-  function save() { Storage.set(stateKey, state); }
-
   const list = el("div", { class: "scramble-list" });
-
   task.phrases.forEach((phrase, idx) => list.appendChild(buildRow(phrase, idx)));
   wrap.appendChild(list);
 
@@ -329,7 +345,9 @@ function buildScramble(w, d, task) {
     const row = el("div", { class: "scramble-row" + (state.solved[idx] ? " solved" : "") });
 
     const chipsBox = el("div", { class: "scramble-chips" });
-    phrase.scrambled.forEach((word, i) => {
+    const order = state.displayOrder[idx] || phrase.scrambled.map((_, i) => i);
+    order.forEach((i) => {
+      const word = phrase.scrambled[i];
       const chip = el("span", { class: "scramble-chip", text: word, onclick: () => {
         if (state.solved[idx]) return;
         if (state.chosen[idx].includes(i)) return;
