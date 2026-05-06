@@ -113,10 +113,9 @@
       if (remote && remote.payload) {
         writeLocal(remote.payload);
         lastPushed = JSON.stringify(remote.payload);
-        // Refresh current view
+        // Refresh current view (silent — won't disrupt active interaction)
         if (window.location.hash) {
-          const ev = new HashChangeEvent("hashchange");
-          window.dispatchEvent(ev);
+          window.dispatchEvent(new CustomEvent("storage-synced"));
         }
       }
       setStatus("synced");
@@ -153,9 +152,9 @@
         writeLocal(incoming);
         lastPushed = incomingJson;
         setStatus("synced");
-        
-        // Only reload if the data actually changed from someone else
-        window.dispatchEvent(new Event("hashchange"));
+
+        // Silent update — app.js listener will skip re-render if user is interacting
+        window.dispatchEvent(new CustomEvent("storage-synced"));
       } catch (err) {
         console.warn("SSE parse error", err);
       }
@@ -173,7 +172,7 @@
         writeLocal(local);
         lastPushed = JSON.stringify(local);
         setStatus("synced");
-        window.dispatchEvent(new Event("hashchange"));
+        window.dispatchEvent(new CustomEvent("storage-synced"));
       } catch (err) {
         console.warn("SSE patch error", err);
       }

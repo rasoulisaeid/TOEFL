@@ -176,6 +176,40 @@
 
   window.addEventListener("hashchange", route);
 
+  // Silent cross-user sync: when remote storage changes, soft-refresh the
+  // view ONLY if the user isn't actively interacting. Skips re-render while
+  // the user is typing, dragging, or has a modal open — which preserves
+  // focus, in-progress drags, and modal state across remote updates.
+  let pendingSync = false;
+  function isUserInteracting() {
+    const a = document.activeElement;
+    if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable)) return true;
+    if (document.querySelector(".scramble-chip.dragging, .answer-token.dragging")) return true;
+    if (document.querySelector(".modal-overlay, .scene-modal")) return true;
+    return false;
+  }
+  window.addEventListener("storage-synced", () => {
+    if (isUserInteracting()) {
+      // Defer — we'll re-check when interaction ends
+      pendingSync = true;
+      return;
+    }
+    route();
+  });
+  // Catch the moment interaction ends to flush a deferred re-render
+  ["focusout", "dragend", "mouseup"].forEach((ev) => {
+    document.addEventListener(ev, () => {
+      if (!pendingSync) return;
+      // Wait a tick so the DOM settles after the interaction
+      setTimeout(() => {
+        if (pendingSync && !isUserInteracting()) {
+          pendingSync = false;
+          route();
+        }
+      }, 50);
+    });
+  });
+
   // Initial paint
   if (!location.hash) location.hash = "#/dashboard";
   else route();
