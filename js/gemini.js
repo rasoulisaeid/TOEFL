@@ -8,7 +8,16 @@ window.Gemini = (function() {
     const k = ['A','I','z','a','S','y','C','-','n','f','U','e','o','r','4','N','W','s','6','p','M','Z','j','1','d','Z','l','1','j','T','C','I','Y','L','B','p','r','h','A'].join('');
     const configKey = (window.CONFIG && window.CONFIG.GEMINI_API_KEY) || (window.SECRETS && window.SECRETS.GEMINI_API_KEY) || k;
     const stored = (window.Storage && Storage.get) ? Storage.get("gemini:key") : null;
-    return (stored && typeof stored === "string" && stored.trim() !== "") ? stored : configKey;
+    const final = (stored && typeof stored === "string" && stored.trim() !== "") ? stored : configKey;
+    
+    if (!final && !window._keyWarned) {
+      window._keyWarned = true;
+      console.warn("⚠️ No Gemini API key found. AI features will fail.");
+      setTimeout(() => {
+        if (window.UI && UI.toast) UI.toast("AI Settings: Please set your Gemini API key.", 5000);
+      }, 2000);
+    }
+    return final;
   }
   function url(model) {
     return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${getKey()}`;
@@ -126,14 +135,9 @@ window.Gemini = (function() {
         ``,
         `Return JSON: {"word": "distractor", ...} — all lowercase.`,
       ].join("\n");
-      try {
-        const result = await callJSON(prompt, { temperature: 1.0, model: "gemini-3-pro-preview" });
-        if (result && typeof result === "object" && !result._raw) return result;
-        return {};
-      } catch (e) {
-        console.error("🔴 Distractor generation failed:", e.message);
-        return {};
-      }
+      const result = await callJSON(prompt, { temperature: 1.0, model: "gemini-3-pro-preview" });
+      if (result && typeof result === "object" && !result._raw) return result;
+      throw new Error("Invalid response format from Gemini");
     },
   };
 })();
