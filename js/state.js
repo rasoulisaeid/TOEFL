@@ -42,11 +42,11 @@
       return next;
     },
     migrateXP() {
-      if (Storage.get("xp_migrated_v3", false)) return;
+      if (Storage.get("xp_migrated_v4", false)) return;
       
       let total = 0;
       const allData = Storage.getAll();
-      console.log("XP Migration v3 started. Keys found:", Object.keys(allData).length);
+      console.log("XP Migration v4 started. Keys found:", Object.keys(allData).length);
 
       // 1. Scan all weeks for core tasks
       for (let w = 1; w <= 25; w++) {
@@ -123,8 +123,8 @@
       }
 
       Storage.set("totalXP", total);
-      Storage.set("xp_migrated_v3", true);
-      console.log(`XP Migration v3 complete. TOTAL: ${total} XP.`);
+      Storage.set("xp_migrated_v4", true);
+      console.log(`XP Migration v4 complete. TOTAL: ${total} XP.`);
     },
 
     /* ===== Weeks / Days ===== */

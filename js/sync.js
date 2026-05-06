@@ -385,6 +385,10 @@
   async function init() {
     patchStorage();
     await pullOnce();
+    // Calculate rewards after we have the latest remote data
+    if (window.State && window.State.migrateXP) {
+      window.State.migrateXP();
+    }
     subscribeSSE();
   }
 

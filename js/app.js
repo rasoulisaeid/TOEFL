@@ -220,7 +220,6 @@
   });
 
   // Initial paint
-  State.migrateXP();
   if (!location.hash) location.hash = "#/dashboard";
   else route();
   highlightNav();
