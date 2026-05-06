@@ -79,6 +79,7 @@ window.Views.imageStory = function (mount, params) {
   const layout = el("div", { class: "img-story-layout" });
 
   const gridSection = el("div", { style: "margin-bottom:20px" }, sceneGridCard());
+  const repeatsSection = el("div", { style: "margin-bottom:20px" }, repeatsStoryBlock());
   const pasteSection = el("div", null, pasteCard());
   
   const bottomRow = el("div", { class: "row", style: "gap:20px; align-items: flex-start" }, [
@@ -91,6 +92,7 @@ window.Views.imageStory = function (mount, params) {
     ])
   ]);
 
+  layout.appendChild(repeatsSection);
   layout.appendChild(gridSection);
   layout.appendChild(bottomRow);
   mount.appendChild(layout);
@@ -254,6 +256,197 @@ window.Views.imageStory = function (mount, params) {
         }}),
       ]));
       m.appendChild(right);
+    });
+  }
+
+  function repeatsStoryBlock() {
+    const cur = State.getConvRepeats(w, d, story.id + ":story");
+    const wrap = el("div", { class: "repeats-card", style: "padding:16px; background:var(--card); border:2px solid var(--border); border-bottom-width:5px; border-radius:var(--r-lg)" }, [
+      el("div", { class: "row", style: "justify-content:space-between; align-items:center" }, [
+        el("div", null, [
+          el("div", { style: "font-weight:900; font-size:15px; letter-spacing:-0.01em" }, "Story Practice Progress"),
+          el("div", { class: "muted", style: "font-size:12px; margin-top:2px" }, "Complete 2 shared descriptions to master this story"),
+        ]),
+        el("div", { class: "row", style: "gap:8px" }, [
+          el("button", { 
+            class: "btn ghost sm icon", 
+            title: "Reset Progress",
+            onclick: () => {
+              if (confirm("Reset practice repeats for this story?")) {
+                State.setConvRepeats(w, d, story.id + ":story", 0);
+                Views.imageStory(mount, params);
+              }
+            }
+          }, "↺"),
+          el("button", { class: "btn primary sm", onclick: () => openStoryPracticeModal() }, [
+            el("span", { style: "margin-right:6px" }, "▶"), "Practice Mode"
+          ])
+        ])
+      ]),
+      el("div", { class: "repeat-checks", style: "display:flex; gap:12px; margin-top:16px" }, [1, 2].map(i => {
+        const active = i <= cur;
+        return el("div", {
+          style: `flex:1; height:44px; border-radius:12px; border:2.5px solid ${active ? 'var(--primary)' : 'var(--border)'}; background:${active ? 'var(--primary-soft)' : 'var(--card-2)'}; display:grid; place-items:center; cursor:pointer; transition: all .1s;`,
+          onclick: () => {
+            const next = (i === cur) ? i - 1 : i;
+            State.setConvRepeats(w, d, story.id + ":story", next);
+            UI.toast(`Story repeats updated to ${next}/2`);
+            Views.imageStory(mount, params);
+          }
+        }, [
+          el("span", { style: `font-size:18px; font-weight:900; color:${active ? 'var(--primary-dark)' : 'var(--text-soft)'}` }, active ? "✓" : i)
+        ]);
+      }))
+    ]);
+    return wrap;
+  }
+
+  function openStoryPracticeModal() {
+    UI.modal((m, close) => {
+      const content = el("div", { class: "col", style: "gap:24px; min-height:450px; justify-content:center; align-items:center; text-align:center" });
+      m.appendChild(content);
+
+      let session = { roles: { A: null, B: null }, step: 0 };
+      let myRole = null; 
+
+      function onSync(data) {
+        if (data) {
+          if (data.roles) session.roles = { ...session.roles, ...data.roles };
+          if (data.step !== undefined) session.step = data.step;
+          if (data.finished && !session.finished) {
+            session.finished = true;
+            finish(true);
+            return;
+          }
+        }
+        if (myRole === null) showRolePicker();
+        else renderStep();
+      }
+
+      function showRolePicker() {
+        UI.clear(content);
+        content.appendChild(el("h2", { style: "margin:0" }, "Role A or B?"));
+        content.appendChild(el("div", { class: "muted", style: "margin-bottom:20px" }, "A: Panels 1,3,5,7 · B: Panels 2,4,6,8"));
+        
+        const btns = el("div", { class: "row", style: "gap:12px; width:100%" }, [
+          roleBtn("A", "First Person"),
+          roleBtn("B", "Second Person")
+        ]);
+        content.appendChild(btns);
+
+        content.appendChild(el("div", { style: "margin-top:20px; border-top:1px solid var(--border); padding-top:20px; width:100%" }, [
+          el("button", { class: "btn ghost sm", onclick: async () => {
+            if (confirm("Reset current story session?")) {
+              await window.PracticeSync.clear();
+              session = { roles: { A: null, B: null }, step: 0 };
+              showRolePicker();
+            }
+          }}, "Reset Session")
+        ]));
+      }
+
+      function roleBtn(label, name) {
+        const owner = session.roles[label];
+        const isTaken = owner && owner !== window.SYNC_CLIENT_ID;
+        const isMe = owner === window.SYNC_CLIENT_ID;
+        return el("button", { 
+          class: `btn big ${isMe ? 'primary' : (isTaken ? 'ghost' : 'primary')}`, 
+          style: `flex:1; padding:25px 10px; position:relative; ${isTaken ? 'opacity:0.5; pointer-events:none' : ''}`, 
+          onclick: () => startPractice(label) 
+        }, [
+          el("div", { style: "font-size:12px; opacity:0.8; margin-bottom:4px" }, `Role ${label}`),
+          el("div", { style: "font-size:20px; font-weight:900" }, name),
+          isTaken ? el("div", { style: "font-size:10px; margin-top:4px; color:var(--red)" }, "ALREADY TAKEN") : null
+        ]);
+      }
+
+      async function startPractice(roleLabel) {
+        myRole = roleLabel;
+        await window.PracticeSync.update({ roles: { [roleLabel]: window.SYNC_CLIENT_ID } });
+      }
+
+      function renderStep() {
+        UI.clear(content);
+        const scenes = story.scenes || [];
+        const step = session.step;
+        if (step >= scenes.length) { finish(); return; }
+
+        const scene = scenes[step];
+        const isMe = (step % 2 === 0 && myRole === 'A') || (step % 2 === 1 && myRole === 'B');
+        const whoName = step % 2 === 0 ? "First Person (A)" : "Second Person (B)";
+
+        content.appendChild(el("div", { class: "muted", style: "font-weight:800; font-size:12px; text-transform:uppercase" }, `Panel ${step + 1} of 8`));
+        
+        const turnBadge = el("div", { 
+          style: `padding:6px 16px; border-radius:999px; font-weight:900; font-size:13px; margin-top:8px; background:${isMe ? 'var(--primary)' : 'var(--card-2)'}; color:${isMe ? 'white' : 'var(--text-soft)'}; border:2px solid ${isMe ? 'var(--primary-dark)' : 'var(--border)'}` 
+        }, isMe ? "Your Turn to Describe" : `Waiting for ${whoName}...`);
+        content.appendChild(turnBadge);
+
+        // Image Panel
+        const imgWrap = el("div", { style: "margin:20px auto; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--card-2); max-width:400px" });
+        const cv = el("canvas", { style: "width:100%; display:block" });
+        imgWrap.appendChild(cv);
+        if (imageData) sliceTo(cv, imageData, step, true);
+        else imgWrap.appendChild(el("div", { style: "padding:40px; color:var(--muted)" }, "No image uploaded"));
+        content.appendChild(imgWrap);
+
+        // Hint & Vocab
+        const info = el("div", { style: "margin-bottom:20px" }, [
+           el("div", { style: "font-weight:900; font-size:18px; margin-bottom:10px" }, scene.title),
+           el("div", { class: "row", style: "justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:12px" }, 
+             (scene.vocab || []).map(v => el("span", { class: "chip" }, v))),
+           el("div", { style: "padding:14px; background:var(--gold-soft); color:#6b5400; border-radius:12px; font-size:15px; font-weight:700" }, [
+             el("span", { style: "margin-right:6px" }, "💡"), scene.hint
+           ])
+        ]);
+        content.appendChild(info);
+
+        if (isMe) {
+          content.appendChild(el("button", { 
+            class: "btn big primary", 
+            style: "width:100%; padding:20px; font-size:18px", 
+            onclick: async () => { await window.PracticeSync.update({ step: step + 1 }); }
+          }, step === scenes.length - 1 ? "Finish Session" : "Done with this Panel →"));
+        } else {
+          content.appendChild(el("div", { class: "thinking", style: "padding:20px; justify-content:center" }, `Waiting for ${whoName}...`));
+        }
+      }
+
+      function finish(remoteTriggered = false) {
+        UI.clear(content);
+        content.appendChild(el("div", { style: "text-align:center; padding:20px" }, [
+          el("div", { style: "font-size:64px; margin-bottom:20px" }, "🎊"),
+          el("h2", null, "Story Complete!"),
+          el("p", { class: "muted" }, remoteTriggered ? "Your partner finished the session." : "You've finished the shared narrative practice."),
+          el("button", { 
+            class: "btn big primary", 
+            style: "width:100%; margin-top:30px", 
+            onclick: async () => {
+              State.incrementConvRepeats(w, d, story.id + ":story");
+              if (!remoteTriggered) {
+                await window.PracticeSync.update({ finished: true });
+                setTimeout(() => window.PracticeSync.clear(), 1500);
+              }
+              close();
+              Views.imageStory(mount, params);
+            }
+          }, remoteTriggered ? "Close" : "Finish & Close")
+        ]));
+      }
+
+      if (window.PracticeSync) {
+        window.PracticeSync.join(story.id + ":story", onSync);
+        onSync(null); 
+      } else {
+        showRolePicker(); 
+      }
+
+      const checkClose = setInterval(() => {
+        if (!document.body.contains(m)) {
+          clearInterval(checkClose);
+          if (window.PracticeSync) window.PracticeSync.leave();
+        }
+      }, 1000);
     });
   }
 
