@@ -207,13 +207,10 @@
           UI.el("div", { class: "q-opts" }, q.opts.map((opt, i) => {
             let cls = "q-opt-preview";
             if (i === q.correct) cls += " correct";
-            if (i === firstTry && i !== q.correct) cls += " wrong";
             
             return UI.el("div", { class: cls }, [
               UI.el("span", { class: "letter", text: ["A","B","C","D","E"][i] }),
               UI.el("span", { text: opt }),
-              i === firstTry ? UI.el("span", { class: "badge", text: "YOUR FIRST TRY" }) : null,
-              i === q.correct && i !== firstTry ? UI.el("span", { class: "badge", text: "CORRECT ANSWER" }) : null,
             ]);
           })),
           UI.el("div", { class: "mcq-explain review", text: q.explanation })
