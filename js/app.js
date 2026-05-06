@@ -124,14 +124,21 @@
           </div>
         </div>
       `;
-      m.querySelector("#cancelSettings").onclick = close;
-      m.querySelector("#saveSettings").onclick = () => {
-        const val = m.querySelector("#geminiKeyInput").value.trim();
+      const input = m.querySelector("#geminiKeyInput");
+      const saveBtn = m.querySelector("#saveSettings");
+      
+      const doSave = () => {
+        const val = input.value.trim();
         Storage.set("gemini:key", val);
+        saveBtn.textContent = "✓ Saved!";
+        saveBtn.style.background = "var(--green)";
         UI.toast(val ? "Key saved! App refreshing..." : "Key cleared.");
-        close();
-        setTimeout(() => location.reload(), 800);
+        setTimeout(() => location.reload(), 600);
       };
+
+      input.onkeydown = (e) => { if (e.key === "Enter") doSave(); };
+      m.querySelector("#cancelSettings").onclick = close;
+      saveBtn.onclick = doSave;
     });
   });
 
