@@ -39,13 +39,9 @@ window.Views.leitner = function (mount) {
 
     boxesData.forEach((cards, idx) => {
       const boxNum = idx + 1;
-      const active = selectedBoxes.includes(boxNum);
+      const active = selectedBoxes.length === 1 && selectedBoxes[0] === boxNum;
       filterRow.appendChild(makeBoxFilter(boxNum, cards.length, active, () => {
-        if (selectedBoxes.includes(boxNum)) {
-          selectedBoxes = selectedBoxes.filter(b => b !== boxNum);
-        } else {
-          selectedBoxes.push(boxNum);
-        }
+        selectedBoxes = [boxNum];
         sessionStorage.setItem("leitner:filter", JSON.stringify(selectedBoxes));
         render();
       }, `every ${intervals[idx]}d`));
@@ -54,8 +50,7 @@ window.Views.leitner = function (mount) {
     // "All" box
     const allActive = selectedBoxes.includes("all");
     filterRow.appendChild(makeBoxFilter("All", State.getCards().length, allActive, () => {
-      if (selectedBoxes.includes("all")) selectedBoxes = [];
-      else selectedBoxes = ["all"];
+      selectedBoxes = ["all"];
       sessionStorage.setItem("leitner:filter", JSON.stringify(selectedBoxes));
       render();
     }, "Whole collection"));
