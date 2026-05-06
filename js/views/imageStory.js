@@ -326,7 +326,7 @@ window.Views.imageStory = function (mount, params) {
       function showRolePicker() {
         UI.clear(content);
         content.appendChild(el("h2", { style: "margin:0" }, "Role A or B?"));
-        content.appendChild(el("div", { class: "muted", style: "margin-bottom:20px" }, "A: Panels 1,3,5,7 · B: Panels 2,4,6,8"));
+        content.appendChild(el("div", { class: "muted", style: "margin-bottom:20px" }, "Select a role to start synced practice."));
         
         const btns = el("div", { class: "row", style: "gap:12px; width:100%" }, [
           roleBtn("A", "First Person"),
