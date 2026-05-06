@@ -96,19 +96,31 @@
   document.getElementById("openSettings")?.addEventListener("click", () => {
     UI.modal((m, close) => {
       const curKey = Storage.get("gemini:key", "");
+      const isSet = curKey && curKey.length > 10;
+      const masked = isSet ? (curKey.slice(0, 4) + "..." + curKey.slice(-4)) : "Not set";
+      
       m.innerHTML = `
         <div class="word-modal-content">
-          <h2>AI Settings</h2>
-          <p class="muted" style="font-size:13px; margin-bottom:15px">
-            Enter your Gemini API key here. It will be saved in your browser's local storage only.
-          </p>
-          <div class="col" style="gap:10px">
-            <label style="font-size:12px; font-weight:700">Gemini API Key</label>
-            <input type="password" id="geminiKeyInput" class="input" value="${curKey}" placeholder="AIza..." style="width:100%; padding:10px; border:1.5px solid var(--border); border-radius:8px">
+          <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:15px">
+            <h2 style="margin:0">AI Settings</h2>
+            ${isSet ? '<span style="color:var(--green); font-size:12px; font-weight:700">● Connected</span>' : '<span style="color:var(--text-soft); font-size:12px">○ Disconnected</span>'}
           </div>
-          <div class="modal-actions" style="margin-top:20px">
-            <button class="btn" id="cancelSettings">Cancel</button>
-            <button class="btn primary" id="saveSettings">Save Changes</button>
+          
+          <p class="muted" style="font-size:13px; margin-bottom:20px">
+            Your Gemini API key is stored locally in this browser. It is never synced or shared.
+          </p>
+
+          <div class="col" style="gap:12px">
+            <div class="row" style="justify-content:space-between">
+              <label style="font-size:12px; font-weight:700">Current Key</label>
+              <span style="font-family:monospace; font-size:11px; color:var(--text-soft)">${masked}</span>
+            </div>
+            <input type="password" id="geminiKeyInput" class="input" value="${curKey}" placeholder="Paste new key (AIza...)" style="width:100%; padding:12px; border:1.5px solid var(--border); border-radius:10px; font-size:14px">
+          </div>
+
+          <div class="modal-actions" style="margin-top:25px; display:flex; gap:10px">
+            <button class="btn" id="cancelSettings" style="flex:1">Cancel</button>
+            <button class="btn primary" id="saveSettings" style="flex:2">Save & Refresh</button>
           </div>
         </div>
       `;
@@ -116,7 +128,7 @@
       m.querySelector("#saveSettings").onclick = () => {
         const val = m.querySelector("#geminiKeyInput").value.trim();
         Storage.set("gemini:key", val);
-        UI.toast("Settings saved! Refreshing...");
+        UI.toast(val ? "Key saved! App refreshing..." : "Key cleared.");
         close();
         setTimeout(() => location.reload(), 800);
       };
