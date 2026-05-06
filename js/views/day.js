@@ -52,9 +52,9 @@ function slotContent(w, d, dayContent, readingDay, listeningDay, writingDay) {
       ]),
     ]),
     el("div", { class: "tasks" }, [
-      conv1 ? taskRow(w, d, conv1.id, `Conv 1: ${conv1.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/speaking/together/conv`) : null,
-      conv2 ? taskRow(w, d, conv2.id, `Conv 2: ${conv2.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/speaking/solo/conv`) : null,
+      conv1 ? taskRow(w, d, conv1.id, `Conversation 1: ${conv1.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/speaking/together/conv`) : null,
       story1 ? taskRow(w, d, story1.id, `Image 1: ${story1.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/story/together`) : null,
+      conv2 ? taskRow(w, d, conv2.id, `Conversation 2: ${conv2.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/speaking/solo/conv`) : null,
       story2 ? taskRow(w, d, story2.id, `Image 2: ${story2.title}`, "≈ 15 min", () => location.hash = `#/week/${w}/day/${d}/story/solo`) : null,
     ]),
   ]));
