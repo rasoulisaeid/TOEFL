@@ -960,7 +960,7 @@ main {
 /* Scene modal */
 .modal.scene-modal {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1.5fr 1fr;
   gap: 0;
   width: min(1280px, 96vw);
   max-height: 95vh;

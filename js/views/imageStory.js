@@ -273,7 +273,7 @@ function sliceTo(canvas, dataUrl, idx, hires) {
     const row = Math.floor(idx / cols);
     const panelW = img.width / cols;
     const panelH = img.height / rows;
-    const targetW = hires ? Math.max(800, panelW) : 240;
+    const targetW = hires ? Math.min(1000, panelW * 2) : 240;
     const targetH = hires ? (panelH * (targetW / panelW)) : (panelH * (240 / panelW));
     canvas.width = targetW;
     canvas.height = targetH;
