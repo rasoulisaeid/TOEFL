@@ -306,7 +306,9 @@ window.Views.imageStory = function (mount, params) {
           if (data.step !== undefined) session.step = data.step;
           if (data.finished && !session.finished) {
             session.finished = true;
-            finish(true);
+            UI.toast("Practice session finished by partner! 🎉");
+            close();
+            Views.imageStory(mount, params);
             return;
           }
         }

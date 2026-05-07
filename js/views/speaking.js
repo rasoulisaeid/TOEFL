@@ -119,7 +119,9 @@ window.Views.speaking = function (mount, params) {
             // Detect remote finish
             if (data.finished && !session.finished) {
               session.finished = true;
-              finish(true); // true means remote triggered
+              UI.toast("Practice session finished by partner! 🎉");
+              close();
+              Views.speaking(mount, params);
               return;
             }
           }
