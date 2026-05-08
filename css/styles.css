@@ -2227,8 +2227,12 @@ main {
   line-height: 1.5; 
   margin: 32px 0;
   position: relative;
-  text-align: left;
+  text-align: center;
   box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
 }
 .vrm-advice::before {
   content: "💡"; position: absolute; top: -16px; left: 24px;
