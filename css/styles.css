@@ -323,7 +323,7 @@ main {
   }
   .sidebar .topnav { display: none; }
   .sidebar-foot { margin-top: 0; flex-direction: row; margin-left: auto; gap: 8px; }
-  #openSettings { display: none; }
+  #openSettings { display: none !important; }
   .sidebar-stats { flex-direction: row; gap: 6px; }
   .brand-mark { width: 38px; height: 38px; font-size: 18px; }
   .brand-name { font-size: 16px; }
