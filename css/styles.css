@@ -325,6 +325,17 @@ main {
   .sidebar-foot { margin-top: 0; flex-direction: row; margin-left: auto; gap: 8px; }
   #openSettings { display: none !important; }
   .sidebar-stats { flex-direction: row; gap: 6px; }
+  .vocab-reminder-sidebar {
+    flex-direction: row;
+    margin: 0;
+    padding: 8px 14px;
+    border-radius: 14px;
+    min-width: 0;
+    height: 44px;
+    box-shadow: 0 4px 10px -2px rgba(28, 176, 246, 0.1);
+  }
+  .vocab-reminder-sidebar .vrs-body { margin-left: 4px; }
+  .vocab-reminder-sidebar .vrs-text { display: none; } /* Hide 'Quest' text to save space */
   .brand-mark { width: 38px; height: 38px; font-size: 18px; }
   .brand-name { font-size: 16px; }
   .brand-sub { display: none; }
