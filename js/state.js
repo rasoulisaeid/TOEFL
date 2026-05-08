@@ -279,6 +279,10 @@
     getCards() {
       return Storage.get("leitner:cards", []);
     },
+    getDueCount() {
+      const today = TODAY();
+      return this.getCards().filter(c => c.nextDue <= today).length;
+    },
     setCards(cards) {
       Storage.set("leitner:cards", cards);
     },

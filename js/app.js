@@ -130,6 +130,66 @@
     }
   }
 
+  const VocabularyReminder = {
+    ADVICE: [
+      "Reviewing words at the right time is the secret to long-term memory.",
+      "A quick 5-minute review now saves hours of re-learning later.",
+      "Consistency beats intensity. Keep your word boxes moving!",
+      "Every word you review today is one step closer to TOEFL fluency.",
+      "Don't let your hard-earned words fade away. Quick check-in?"
+    ],
+    check() {
+      const due = State.getDueCount();
+      if (due === 0) {
+        this.renderSidebar(0);
+        return;
+      }
+
+      const now = Date.now();
+      const last = parseInt(localStorage.getItem("vrm:last") || "0", 10);
+      const threeHours = 3 * 3600 * 1000;
+
+      if (now - last > threeHours) {
+        this.showModal(due);
+        localStorage.setItem("vrm:last", now);
+      } else {
+        this.renderSidebar(due);
+      }
+    },
+    showModal(due) {
+      UI.modal((m, close) => {
+        const advice = this.ADVICE[Math.floor(Math.random() * this.ADVICE.length)];
+        m.innerHTML = `
+          <div class="vocab-reminder-modal">
+            <span class="vrm-icon">📚</span>
+            <div class="vrm-title">Time for Review!</div>
+            <p class="muted">You have <b>${due}</b> words waiting for you in your Leitner boxes.</p>
+            <div class="vrm-advice">${advice}</div>
+            <div class="modal-actions">
+              <button class="btn" id="vrmDismiss">Later</button>
+              <button class="btn primary" id="vrmGo">Review Now</button>
+            </div>
+          </div>
+        `;
+        m.querySelector("#vrmDismiss").onclick = () => { close(); this.renderSidebar(due); };
+        m.querySelector("#vrmGo").onclick = () => { close(); location.hash = "#/leitner"; };
+      });
+    },
+    renderSidebar(due) {
+      const container = document.getElementById("vocabReminder");
+      if (!container) return;
+      UI.clear(container);
+      if (due > 0) {
+        const widget = UI.el("div", { class: "vocab-reminder-sidebar", onclick: () => location.hash = "#/leitner" }, [
+          UI.el("span", { class: "vrs-icon" }, "📚"),
+          UI.el("span", { class: "vrs-text" }, "Words Due"),
+          UI.el("span", { class: "vrs-count" }, due)
+        ]);
+        container.appendChild(widget);
+      }
+    }
+  };
+
   // AI Settings Modal
   document.getElementById("openSettings")?.addEventListener("click", () => {
     UI.modal((m, close) => {
@@ -223,4 +283,5 @@
   if (!location.hash) location.hash = "#/dashboard";
   else route();
   highlightNav();
+  VocabularyReminder.check();
 })();
