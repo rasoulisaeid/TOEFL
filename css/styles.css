@@ -2222,7 +2222,9 @@ main {
 }
 
 .vocab-reminder-sidebar {
-  margin: 10px 16px 18px;
+  margin: 10px auto 18px;
+  width: calc(100% - 40px);
+  max-width: 160px;
   padding: 12px 14px;
   background: linear-gradient(165deg, #ffffff, #f8faff);
   border: 2px solid var(--blue);
