@@ -227,9 +227,11 @@
       return total ? done / total : 0;
     },
     skillProgress(w) {
-      // crude per-skill completion from tasks prefix sp:/li:/rd:/wr:
+      // Weekly totals: 4 speaking + 3 each for others per day = 28/21/21/21 per week
       const wk = this.getWeek(w);
-      const out = { speaking: [0, 0], listening: [0, 0], reading: [0, 0], writing: [0, 0] };
+      const done = { speaking: 0, listening: 0, reading: 0, writing: 0 };
+      const totals = { speaking: 28, listening: 21, reading: 21, writing: 21 };
+      
       for (let d = 1; d <= 7; d++) {
         const day = wk.days[d] || { tasks: {} };
         Object.keys(day.tasks).forEach((id) => {
@@ -238,14 +240,16 @@
             : id.startsWith("rd:") ? "reading"
             : id.startsWith("wr:") ? "writing"
             : null;
-          if (!sk) return;
-          out[sk][1] += 1;
-          if (day.tasks[id].done) out[sk][0] += 1;
+          if (sk && day.tasks[id].done) {
+            done[sk] += 1;
+          }
         });
       }
+      
       const ratios = {};
-      Object.keys(out).forEach((k) => {
-        ratios[k] = out[k][1] ? out[k][0] / out[k][1] : 0;
+      Object.keys(totals).forEach((k) => {
+        // Cap done at total in case of data oddities
+        ratios[k] = Math.min(1, done[k] / totals[k]);
       });
       return ratios;
     },
