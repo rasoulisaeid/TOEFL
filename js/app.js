@@ -138,16 +138,38 @@
       "Every word you review today is one step closer to TOEFL fluency.",
       "Don't let your hard-earned words fade away. Quick check-in?"
     ],
-    check() {
+    check(isReload = false) {
       const due = State.getDueCount();
       if (due === 0) {
         this.renderSidebar(0);
         return;
       }
-      this.showModal(due);
+
+      const now = new Date();
+      const hour = now.getHours();
+      const lastShownHour = parseInt(localStorage.getItem("vrm:lastHour") || "-1", 10);
+      
+      let shouldShow = isReload;
+      
+      // Show on every 3rd hour (0, 3, 6, 9, 12, 15, 18, 21)
+      if (hour % 3 === 0 && hour !== lastShownHour) {
+        shouldShow = true;
+        localStorage.setItem("vrm:lastHour", hour);
+      }
+
+      if (shouldShow) {
+        this.showModal(due);
+      }
       this.renderSidebar(due);
     },
+    startTimer() {
+      // Check every minute for the "3rd hour" trigger
+      setInterval(() => this.check(false), 60000);
+    },
     showModal(due) {
+      // Don't show if another modal is already open
+      if (document.querySelector(".modal-overlay")) return;
+      
       UI.modal((m, close) => {
         const advice = this.ADVICE[Math.floor(Math.random() * this.ADVICE.length)];
         m.innerHTML = `
@@ -279,5 +301,6 @@
   if (!location.hash) location.hash = "#/dashboard";
   else route();
   highlightNav();
-  VocabularyReminder.check();
+  VocabularyReminder.check(true);
+  VocabularyReminder.startTimer();
 })();
