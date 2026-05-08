@@ -104,7 +104,7 @@
   function pct(x) { return Math.round((x || 0) * 100); }
 
   function clickableText(text, onWordClick) {
-    const container = el("div", { class: "clickable-container" });
+    const container = el("span", { class: "clickable-container" });
     const tokens = text.split(/(\s+|[.,!?;:()"])/);
     tokens.forEach(t => {
       if (t.trim() && /^[a-zA-Z'-]+$/.test(t)) {
