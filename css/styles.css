@@ -334,9 +334,9 @@ main {
     height: 44px;
     box-shadow: 0 4px 10px -2px rgba(28, 176, 246, 0.1);
   }
-  .vocab-reminder-sidebar .vrs-body { margin-left: 4px; }
-  /* Show all elements as requested */
-  .vocab-reminder-sidebar .vrs-text { display: block; font-size: 9px; margin-left: 4px; } 
+  .vocab-reminder-sidebar .vrs-body { margin-left: 0; }
+  .vocab-reminder-sidebar .vrs-head { display: none; }
+  .vocab-reminder-sidebar .vrs-label { font-size: 12px; }
   .brand-mark { width: 38px; height: 38px; font-size: 18px; }
   .brand-name { font-size: 16px; }
   .brand-sub { display: none; }
