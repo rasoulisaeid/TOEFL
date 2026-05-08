@@ -1986,6 +1986,7 @@ main {
 .scramble-sidebar .sb-sentence.solved { color: var(--text); font-weight: 600; }
 .scramble-sidebar .sb-sentence.wip { color: var(--primary-dark); font-style: italic; opacity: 0.85; }
 .scramble-sidebar .sb-sentence.empty { color: var(--text-soft); opacity: 0.45; }
+.scramble-sidebar .sidebar-text .clickable-container { display: inline; }
 
 /* Drag & drop styles */
 .scramble-chip[draggable="true"], .scramble-answer .answer-token[draggable="true"] {

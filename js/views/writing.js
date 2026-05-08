@@ -127,7 +127,8 @@ function buildCloze(w, d, task) {
         const idx = parseInt(m[1], 10);
         para.appendChild(makeBlank(idx));
       } else {
-        para.appendChild(document.createTextNode(tok));
+        // Splitting whitespace/punctuation and making words clickable
+        para.appendChild(UI.clickableText(tok, WordLookup.lookup));
       }
     });
     passage.appendChild(para);
@@ -368,16 +369,18 @@ function buildScramble(w, d, task) {
   function refreshSidebar() {
     UI.clear(sidebarText);
     task.phrases.forEach((phrase, idx) => {
-      let span;
+      let content;
       if (state.solved[idx]) {
-        span = el("span", { class: "sb-sentence solved", text: phrase.correct + ". " });
+        content = UI.clickableText(phrase.correct + ". ", WordLookup.lookup);
+        content.classList.add("sb-sentence", "solved");
       } else if (state.chosen[idx].length > 0) {
         const built = state.chosen[idx].map((i) => phrase.scrambled[i]).join(" ");
-        span = el("span", { class: "sb-sentence wip", text: built + "… " });
+        content = UI.clickableText(built + "… ", WordLookup.lookup);
+        content.classList.add("sb-sentence", "wip");
       } else {
-        span = el("span", { class: "sb-sentence empty", text: "_____. " });
+        content = el("span", { class: "sb-sentence empty", text: "_____. " });
       }
-      sidebarText.appendChild(span);
+      sidebarText.appendChild(content);
     });
   }
 
@@ -783,15 +786,17 @@ function buildGuided(w, d, task) {
     UI.clear(sidebarText);
     task.steps.forEach((step, idx) => {
       const s = state.steps[idx];
-      let span;
+      let content;
       if (s.accepted) {
-        span = el("span", { class: "sb-sentence solved", text: s.draft.trim() + " " });
+        content = UI.clickableText(s.draft.trim() + " ", WordLookup.lookup);
+        content.classList.add("sb-sentence", "solved");
       } else if (s.draft.trim()) {
-        span = el("span", { class: "sb-sentence wip", text: s.draft.trim() + "… " });
+        content = UI.clickableText(s.draft.trim() + "… ", WordLookup.lookup);
+        content.classList.add("sb-sentence", "wip");
       } else {
-        span = el("span", { class: "sb-sentence empty", text: "_____. " });
+        content = el("span", { class: "sb-sentence empty", text: "_____. " });
       }
-      sidebarText.appendChild(span);
+      sidebarText.appendChild(content);
     });
   }
 }
