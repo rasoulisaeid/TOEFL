@@ -98,8 +98,9 @@ function buildListening(w, d, t) {
     },
   }));
 
-  // Sidebar — vocab
+  // Sidebar — vocab & transcript
   side.appendChild(buildVocabCard(t.vocab, w, d, "Listening vocabulary"));
+  side.appendChild(buildTranscriptCard(t));
 
   layout.appendChild(main);
   layout.appendChild(side);
@@ -420,11 +421,19 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
       if (answered === true) {
         // Correctly answered — just show the word
         wrap.classList.add("done");
-        wrap.appendChild(el("span", { class: "dict-filled correct" }, b.correctWord));
+        wrap.appendChild(el("span", { 
+          class: "dict-filled correct clickable-word", 
+          text: b.correctWord,
+          onclick: () => WordLookup.lookup(b.correctLower)
+        }));
       } else if (answered === false) {
         // Wrong — show correct word in orange
         wrap.classList.add("done");
-        wrap.appendChild(el("span", { class: "dict-filled revealed" }, b.correctWord));
+        wrap.appendChild(el("span", { 
+          class: "dict-filled revealed clickable-word", 
+          text: b.correctWord,
+          onclick: () => WordLookup.lookup(b.correctLower)
+        }));
       } else {
         // Unanswered: show pair buttons on top, blank line below
         const options = [
@@ -445,8 +454,10 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
               UI.clear(wrap);
               wrap.classList.add("done");
               wrap.appendChild(el("span", {
-                class: "dict-filled " + (opt.isCorrect ? "correct" : "revealed")
-              }, b.correctWord));
+                class: "dict-filled " + (opt.isCorrect ? "correct" : "revealed") + " clickable-word",
+                text: b.correctWord,
+                onclick: () => WordLookup.lookup(b.correctLower)
+              }));
               updateScore();
             }
           }));
@@ -457,7 +468,16 @@ function renderDictation(body, tokens, blankIndices, distractors, state, storage
 
       passage.appendChild(wrap);
     } else {
-      passage.appendChild(document.createTextNode(tk.raw));
+      // Normal word or punctuation
+      if (tk.clean) {
+        passage.appendChild(el("span", {
+          class: "clickable-word",
+          text: tk.raw,
+          onclick: () => WordLookup.lookup(tk.clean)
+        }));
+      } else {
+        passage.appendChild(document.createTextNode(tk.raw));
+      }
     }
   });
 
