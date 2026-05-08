@@ -144,17 +144,8 @@
         this.renderSidebar(0);
         return;
       }
-
-      const now = Date.now();
-      const last = parseInt(localStorage.getItem("vrm:last") || "0", 10);
-      const threeHours = 3 * 3600 * 1000;
-
-      if (now - last > threeHours) {
-        this.showModal(due);
-        localStorage.setItem("vrm:last", now);
-      } else {
-        this.renderSidebar(due);
-      }
+      this.showModal(due);
+      this.renderSidebar(due);
     },
     showModal(due) {
       UI.modal((m, close) => {
@@ -181,9 +172,14 @@
       UI.clear(container);
       if (due > 0) {
         const widget = UI.el("div", { class: "vocab-reminder-sidebar", onclick: () => location.hash = "#/leitner" }, [
-          UI.el("span", { class: "vrs-icon" }, "🚀"),
-          UI.el("span", { class: "vrs-text" }, "Words Due"),
-          UI.el("span", { class: "vrs-count" }, due)
+          UI.el("div", { class: "vrs-head" }, [
+            UI.el("span", { class: "vrs-icon" }, "🚀"),
+            UI.el("span", { class: "vrs-text" }, "Daily Quest")
+          ]),
+          UI.el("div", { class: "vrs-body" }, [
+            UI.el("span", { class: "vrs-count-pill" }, due),
+            UI.el("span", { class: "vrs-label" }, "Words to review")
+          ])
         ]);
         container.appendChild(widget);
       }
