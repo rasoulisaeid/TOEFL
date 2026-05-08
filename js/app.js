@@ -161,12 +161,12 @@
         const advice = this.ADVICE[Math.floor(Math.random() * this.ADVICE.length)];
         m.innerHTML = `
           <div class="vocab-reminder-modal">
-            <span class="vrm-icon">📚</span>
-            <div class="vrm-title">Time for Review!</div>
-            <p class="muted">You have <b>${due}</b> words waiting for you in your Leitner boxes.</p>
+            <span class="vrm-icon">🚀</span>
+            <div class="vrm-title">Ready for a boost?</div>
+            <p class="muted" style="font-size:16px">You have <b>${due}</b> words due for review!</p>
             <div class="vrm-advice">${advice}</div>
-            <div class="modal-actions">
-              <button class="btn" id="vrmDismiss">Later</button>
+            <div class="modal-actions" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px">
+              <button class="btn" id="vrmDismiss">Maybe later</button>
               <button class="btn primary" id="vrmGo">Review Now</button>
             </div>
           </div>
@@ -181,7 +181,7 @@
       UI.clear(container);
       if (due > 0) {
         const widget = UI.el("div", { class: "vocab-reminder-sidebar", onclick: () => location.hash = "#/leitner" }, [
-          UI.el("span", { class: "vrs-icon" }, "📚"),
+          UI.el("span", { class: "vrs-icon" }, "🚀"),
           UI.el("span", { class: "vrs-text" }, "Words Due"),
           UI.el("span", { class: "vrs-count" }, due)
         ]);
