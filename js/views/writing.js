@@ -106,6 +106,7 @@ function buildCloze(w, d, task) {
     activeBlank: 0,
     checked: false,
   });
+  if (!state.placed) state.placed = {};
   function save() { Storage.set(stateKey, state); }
   // Persist a shuffled display order for the pool so correct words aren't
   // sitting at the front of the pool in the same order as the blanks.
