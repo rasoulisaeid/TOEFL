@@ -174,11 +174,11 @@
         const widget = UI.el("div", { class: "vocab-reminder-sidebar", onclick: () => location.hash = "#/leitner" }, [
           UI.el("div", { class: "vrs-head" }, [
             UI.el("span", { class: "vrs-icon" }, "🚀"),
-            UI.el("span", { class: "vrs-text" }, "Daily Quest")
+            UI.el("span", { class: "vrs-text" }, "Quest")
           ]),
           UI.el("div", { class: "vrs-body" }, [
             UI.el("span", { class: "vrs-count-pill" }, due),
-            UI.el("span", { class: "vrs-label" }, "Words to review")
+            UI.el("span", { class: "vrs-label" }, "Words")
           ])
         ]);
         container.appendChild(widget);
