@@ -75,9 +75,9 @@ window.Views.speaking = function (mount, params) {
             el("div", { style: "font-weight:900; font-size:15px; letter-spacing:-0.01em" }, "Practice Progress"),
             el("div", { class: "muted", style: "font-size:12px; margin-top:2px" }, "Complete 4 repeats to master this conversation"),
           ]),
-          el("div", { class: "row", style: "gap:8px" }, [
-            el("button", { 
-              class: "btn ghost sm icon", 
+          el("div", { class: "row", style: "gap:8px; flex-wrap:wrap; justify-content:flex-end" }, [
+            el("button", {
+              class: "btn ghost sm icon",
               title: "Reset Progress",
               onclick: () => {
                 if (confirm("Reset practice repeats for this task?")) {
@@ -86,8 +86,17 @@ window.Views.speaking = function (mount, params) {
                 }
               }
             }, "↺"),
-            el("button", { class: "btn primary sm", onclick: () => openPracticeModal() }, [
-              el("span", { style: "margin-right:6px" }, "▶"), "Practice Mode"
+            el("button", { class: "btn sm", onclick: () => openPracticeModal() }, [
+              el("span", { style: "margin-right:6px" }, "👥"), "With Partner"
+            ]),
+            el("button", {
+              class: "btn primary sm sim-launch-btn",
+              onclick: () => {
+                if (!window.SimulationMode) { UI.toast("Simulation not loaded"); return; }
+                window.SimulationMode.openConversation(conv, w, d, () => Views.speaking(mount, params));
+              }
+            }, [
+              el("span", { style: "margin-right:6px" }, "🎭"), "Roleplay (Solo)"
             ])
           ])
         ]),
@@ -291,7 +300,7 @@ window.Views.speaking = function (mount, params) {
     // LEFT: dialogue
     const left = el("div", { class: "col" });
     left.appendChild(repeatsBlock());
-    left.appendChild(el("div", { class: "card" }, [dialogueBlock()]));
+    // left.appendChild(el("div", { class: "card" }, [dialogueBlock()]));
 
     // RIGHT: vocab, rating, notes
     const right = el("div", { class: "col" });

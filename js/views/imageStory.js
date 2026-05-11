@@ -92,8 +92,8 @@ window.Views.imageStory = function (mount, params) {
   ]);
 
   layout.appendChild(repeatsSection);
-  layout.appendChild(setupRow);
-  layout.appendChild(gridSection);
+  // layout.appendChild(setupRow);
+  // layout.appendChild(gridSection);
   layout.appendChild(completeRow);
   mount.appendChild(layout);
 
@@ -267,9 +267,9 @@ window.Views.imageStory = function (mount, params) {
           el("div", { style: "font-weight:900; font-size:15px; letter-spacing:-0.01em" }, "Story Practice Progress"),
           el("div", { class: "muted", style: "font-size:12px; margin-top:2px" }, "Complete 2 shared descriptions to master this story"),
         ]),
-        el("div", { class: "row", style: "gap:8px" }, [
-          el("button", { 
-            class: "btn ghost sm icon", 
+        el("div", { class: "row", style: "gap:8px; flex-wrap:wrap; justify-content:flex-end" }, [
+          el("button", {
+            class: "btn ghost sm icon",
             title: "Reset Progress",
             onclick: () => {
               if (confirm("Reset practice repeats for this story?")) {
@@ -278,8 +278,18 @@ window.Views.imageStory = function (mount, params) {
               }
             }
           }, "↺"),
-          el("button", { class: "btn primary sm", onclick: () => openStoryPracticeModal() }, [
-            el("span", { style: "margin-right:6px" }, "▶"), "Practice Mode"
+          el("button", { class: "btn sm", onclick: () => openStoryPracticeModal() }, [
+            el("span", { style: "margin-right:6px" }, "👥"), "With Partner"
+          ]),
+          el("button", {
+            class: "btn primary sm sim-launch-btn",
+            onclick: () => {
+              if (!window.SimulationMode) { UI.toast("Simulation not loaded"); return; }
+              if (!imageData) { UI.toast("Paste the story image first"); return; }
+              window.SimulationMode.openStory(story, w, d, slot, imageData, sliceTo, () => Views.imageStory(mount, params));
+            }
+          }, [
+            el("span", { style: "margin-right:6px" }, "🎭"), "Roleplay (Solo)"
           ])
         ])
       ]),

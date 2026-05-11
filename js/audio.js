@@ -134,6 +134,10 @@
       general:    "pVnrL6sighQX7hVz89cp",
       scientific: "DODLEQrClDo8wCz460ld",
       fashion:    "r4iCyrmUEMCbsi7eGtf8",
+      brian:      "nPczCjzI2devNBz1zQrb",
+      lauren:     "DODLEQrClDo8wCz460ld",
+      bella:      "hpp4J3VqNfWAUOO0d1Us",
+      adam:       "pNInz6obpgDQGcFmaJgB",
     },
   };
 })();
