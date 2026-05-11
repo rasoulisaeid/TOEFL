@@ -37,7 +37,7 @@ window.Views.week = function (mount, params) {
   mount.appendChild(el("div", { class: "section-title" }, "7 days"));
 
   const grid = el("div", { class: "days-grid" });
-  content.days.forEach((d) => grid.appendChild(dayCard(w, d)));
+  content.days.forEach((d) => grid.appendChild(renderWeekDayCard(w, d)));
   mount.appendChild(grid);
 
   // Reflection note
@@ -51,7 +51,7 @@ window.Views.week = function (mount, params) {
   mount.appendChild(el("div", { class: "card" }, refTextarea));
 };
 
-function dayCard(w, d) {
+function renderWeekDayCard(w, d) {
   const day = State.getDay(w, d.day);
   const taskCount = Object.keys(day.tasks).filter(k => day.tasks[k].done).length;
   const totalTasks = (PLAN.weeks[w - 1] && PLAN.weeks[w - 1].tasksPerDay) || 13;

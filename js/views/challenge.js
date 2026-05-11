@@ -99,12 +99,12 @@ window.Views.challenge = function (mount) {
   const grid = el("div", { class: "days-grid" });
   for (let n = 1; n <= total; n++) {
     const meta = days.find((d) => d.day === n);
-    grid.appendChild(dayCard(n, meta));
+    grid.appendChild(renderChallengeDayCard(n, meta));
   }
   mount.appendChild(grid);
 };
 
-function dayCard(n, meta) {
+function renderChallengeDayCard(n, meta) {
   const { el } = UI;
   const ready = !!meta;
   const totalTasks = meta ? (meta.speaking.length + meta.writing.length) : 6;
