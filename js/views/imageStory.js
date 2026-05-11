@@ -277,7 +277,10 @@ window.Views.imageStory = function (mount, params) {
                 Views.imageStory(mount, params);
               }
             }
-          }, "↺")
+          }, "↺"),
+          el("button", { class: "btn sm", onclick: () => openStoryPracticeModal() }, [
+            el("span", { style: "margin-right:6px" }, "👥"), "With Partner"
+          ])
         ])
       ]),
       el("div", { class: "repeat-checks", style: "display:flex; gap:12px; margin-top:16px" }, [1, 2].map(i => {

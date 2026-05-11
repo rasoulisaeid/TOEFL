@@ -85,7 +85,10 @@ window.Views.speaking = function (mount, params) {
                   Views.speaking(mount, params);
                 }
               }
-            }, "↺")
+            }, "↺"),
+            el("button", { class: "btn sm", onclick: () => openPracticeModal() }, [
+              el("span", { style: "margin-right:6px" }, "👥"), "With Partner"
+            ])
           ])
         ]),
         el("div", { class: "repeat-checks", style: "display:flex; gap:12px; margin-top:16px" }, [1, 2, 3, 4].map(i => {
