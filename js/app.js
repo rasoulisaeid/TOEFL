@@ -63,6 +63,26 @@
         case "leitner":
           Views.leitner(view);
           break;
+        case "c": {
+          // 100-Day Challenge routes
+          if (!parts[1]) {
+            Views.challenge(view);
+          } else if (parts[1] === "leitner") {
+            Views.challengeLeitner(view);
+          } else if (parts[1] === "day") {
+            const d = parts[2];
+            if (parts[3] === "speak" && parts[4] != null) {
+              Views.challengeSpeak(view, { d, i: parts[4] });
+            } else if (parts[3] === "write" && parts[4] != null) {
+              Views.challengeWrite(view, { d, i: parts[4] });
+            } else {
+              Views.challengeDay(view, { d });
+            }
+          } else {
+            Views.placeholder(view, "Page not found");
+          }
+          break;
+        }
         case "week": {
           const w = parts[1];
           if (parts[2] === "day") {

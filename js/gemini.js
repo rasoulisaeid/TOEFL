@@ -104,6 +104,183 @@ window.Gemini = (function() {
     },
 
     /**
+     * Analyse a spoken 5-minute response.
+     *  - audioBase64: base64 string (no data URL prefix)
+     *  - mimeType: e.g. "audio/webm"
+     *  - subject: the question/topic the learner was asked
+     *  - vocab: array of {w, m} the learner was expected to deploy
+     *  - tone: "general" | "formal"
+     * Returns structured feedback JSON.
+     */
+    async analyzeSpeakingAudio({ audioBase64, mimeType, subject, vocab, tone, level }) {
+      const lvl = level || "B2-C1";
+      const vocabList = (vocab || []).map((v) => `- ${v.w}${v.m ? " — " + v.m : ""}`).join("\n");
+      const tonePhrase = tone === "formal"
+        ? "an academic / formal register suitable for university discussion"
+        : "an everyday conversational register";
+
+      const prompt = [
+        `You are an experienced ESL coach evaluating a 5-minute spoken response from a ${lvl} learner.`,
+        ``,
+        `Subject the learner was asked to discuss:`,
+        `> ${subject}`,
+        ``,
+        `Target register: ${tonePhrase}.`,
+        ``,
+        vocabList ? `Target words/expressions the learner was offered (note which they actually used, and whether the usage was natural and correct):\n${vocabList}` : "",
+        ``,
+        `Listen to the audio carefully and return JSON in EXACTLY this shape:`,
+        `{`,
+        `  "summary": "2-3 sentence overall impression — warm, honest, specific",`,
+        `  "scores": {`,
+        `    "fluency": 0,         // 0-10`,
+        `    "pronunciation": 0,   // 0-10`,
+        `    "grammar": 0,         // 0-10`,
+        `    "vocabulary": 0,      // 0-10`,
+        `    "coherence": 0        // 0-10 (structure of ideas)`,
+        `  },`,
+        `  "vocabUsage": [`,
+        `    { "word": "the target word", "used": true|false, "correctlyUsed": true|false, "comment": "short note (≤20 words)" }`,
+        `  ],`,
+        `  "grammarIssues": [`,
+        `    { "youSaid": "verbatim phrase the learner said", "shouldBe": "corrected version", "rule": "1-line rule explanation" }`,
+        `  ],`,
+        `  "grammarStrengths": [ "1-line note about something the learner did well grammatically" ],`,
+        `  "nativeAlternatives": [`,
+        `    { "youSaid": "phrase the learner used", "nativeAmE": "how a native American speaker would more naturally phrase it", "why": "1-line note" }`,
+        `  ],`,
+        `  "fillersAndHesitations": "1-line note about filler words (um/like/you know) or repeated hedges",`,
+        `  "topPriorities": [ "the 2-3 single highest-impact things to work on next time" ]`,
+        `}`,
+        ``,
+        `Rules:`,
+        `- For grammarIssues, give at MOST 6 of the most impactful issues — not every small slip.`,
+        `- For nativeAlternatives, choose 4–6 places where the phrasing is technically correct but sounds non-native.`,
+        `- Quote the learner verbatim in "youSaid" fields.`,
+        `- If the learner did NOT use a target vocab word, mark used=false and leave correctlyUsed=false, with a brief comment on where it would have fit.`,
+        `- Stay specific. "Work on grammar" is useless; "drop articles before uncountable abstract nouns like *information*" is useful.`,
+        `- Return ONLY raw JSON. No prose, no markdown.`,
+      ].filter(Boolean).join("\n");
+
+      const tryModels = ["gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"];
+      let lastErr;
+      for (const m of tryModels) {
+        try {
+          const res = await fetch(url(m), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: prompt },
+                  { inline_data: { mime_type: mimeType, data: audioBase64 } },
+                ],
+              }],
+              generationConfig: {
+                temperature: 0.3,
+                responseMimeType: "application/json",
+              },
+            }),
+          });
+          if (!res.ok) {
+            if (res.status === 404) { lastErr = new Error("model_not_found:" + m); continue; }
+            const t = await res.text().catch(() => "");
+            throw new Error(`Gemini ${res.status}: ${t.slice(0,200)}`);
+          }
+          const data = await res.json();
+          const text = (((data.candidates || [])[0] || {}).content || {}).parts || [];
+          const raw = text.map((p) => p.text || "").join("");
+          try { return JSON.parse(raw); }
+          catch (e) {
+            const match = raw.match(/\{[\s\S]*\}/);
+            if (match) { try { return JSON.parse(match[0]); } catch (e2) {} }
+            return { _raw: raw };
+          }
+        } catch (e) { lastErr = e; }
+      }
+      throw lastErr || new Error("Speaking analysis failed");
+    },
+
+    /**
+     * Analyse a free essay (120–150 words) — content + grammar + lexical range.
+     * Returns structured JSON feedback.
+     */
+    async analyzeEssay({ essayText, subject, minWords, maxWords, level }) {
+      const lvl = level || "B2-C1";
+      const range = (minWords || 120) + "–" + (maxWords || 150);
+      const wc = (essayText.trim().match(/\S+/g) || []).length;
+
+      const prompt = [
+        `You are an experienced writing tutor evaluating a free essay by a ${lvl} learner.`,
+        ``,
+        `Target length: ${range} words. Actual word count: ${wc}.`,
+        ``,
+        `Prompt the learner was given:`,
+        `> ${subject}`,
+        ``,
+        `Learner's essay:`,
+        `"""`,
+        essayText,
+        `"""`,
+        ``,
+        `Return JSON in EXACTLY this shape:`,
+        `{`,
+        `  "summary": "2-3 sentence honest overall impression — what worked, what didn't",`,
+        `  "scores": {`,
+        `    "taskResponse": 0,    // 0-10 — did they actually address the prompt?`,
+        `    "coherence": 0,       // 0-10 — flow, paragraphing, linking`,
+        `    "grammar": 0,         // 0-10`,
+        `    "lexicalRange": 0,    // 0-10 — variety and precision of vocabulary`,
+        `    "register": 0         // 0-10 — appropriate tone`,
+        `  },`,
+        `  "corrections": [`,
+        `    { "original": "exact phrase from essay", "corrected": "fixed phrase", "explanation": "1-line rule" }`,
+        `  ],`,
+        `  "lexicalUpgrades": [`,
+        `    { "original": "weak/plain word or phrase", "upgrade": "more precise/native alternative", "why": "1-line note" }`,
+        `  ],`,
+        `  "structuralFeedback": "2-3 sentences on how to strengthen the argument structure or paragraph flow",`,
+        `  "modelRewrite": "OPTIONAL: a polished version of ONE weak sentence from the essay, kept short",`,
+        `  "topPriorities": [ "the 2-3 highest-impact things to work on" ]`,
+        `}`,
+        ``,
+        `Rules:`,
+        `- Max 8 entries in "corrections", max 6 in "lexicalUpgrades". Choose the most impactful.`,
+        `- Quote the learner verbatim in "original" fields.`,
+        `- Be honest about scores; do not inflate.`,
+        `- If word count is outside the range, mention it in "summary" once.`,
+        `- Return ONLY raw JSON. No prose, no markdown.`,
+      ].join("\n");
+
+      return callJSON(prompt, { temperature: 0.25 });
+    },
+
+    /**
+     * Evaluate a learner's own-words description of a vocabulary word (Part A of words task).
+     * Quick yes/no plus a tiny piece of feedback.
+     */
+    async evaluateWordDescription({ word, pos, learnerDescription }) {
+      const prompt = [
+        `You are an English tutor. A ${`B2-C1`} learner is describing the meaning of the word "${word}" (${pos || "word"}) in their own English.`,
+        ``,
+        `Their description:`,
+        `"${learnerDescription}"`,
+        ``,
+        `Return JSON:`,
+        `{`,
+        `  "accurate": true|false,    // does the description capture the core meaning?`,
+        `  "natural": true|false,     // is the English itself natural and grammatical?`,
+        `  "score": 0,                // 0-10`,
+        `  "feedback": "1-2 sentences: warm, honest, specific",`,
+        `  "modelDefinition": "a clean one-sentence dictionary-style definition the learner can compare against"`,
+        `}`,
+        ``,
+        `Return ONLY raw JSON.`,
+      ].join("\n");
+      return callJSON(prompt, { temperature: 0.2 });
+    },
+
+    /**
      * Generate distractors for a list of words (one batch API call).
      * Returns { word: distractor } mapping.
      * @param {string[]} words - array of words to generate distractors for
