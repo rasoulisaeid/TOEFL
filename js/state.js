@@ -176,11 +176,12 @@
       const day = this.getDay(w, d);
       return (day.tasks[taskId] && day.tasks[taskId].repeats) || 0;
     },
-    incrementConvRepeats(w, d, taskId) {
+    incrementConvRepeats(w, d, taskId, max) {
+      const limit = max || 4;
       return this.updateDay(w, d, (day) => {
         const t = day.tasks[taskId] || { done: false };
-        t.repeats = Math.min(4, (t.repeats || 0) + 1);
-        if (t.repeats >= 4) t.done = true; // Auto-complete if 4 repeats done
+        t.repeats = Math.min(limit, (t.repeats || 0) + 1);
+        if (t.repeats >= limit) t.done = true; // Auto-complete if all repeats done
         day.tasks[taskId] = t;
         return day;
       });

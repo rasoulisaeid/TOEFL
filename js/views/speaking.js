@@ -29,17 +29,88 @@ window.Views.speaking = function (mount, params) {
       return name.replace(/\s*\((her|you|him|me)\)/gi, "").trim();
     }
 
+    // Solo practice state: track which lines are checked
+    const soloKey = `solo:${conv.id}:lines`;
+    let soloChecked = Storage.get(soloKey, {});
+
     function dialogueBlock() {
       const wrap = el("div", { class: "dialogue" });
       const roles = [cleanRole(conv.roles[0]), cleanRole(conv.roles[1])];
-      (conv.dialogue || []).forEach((line) => {
+      const dialogue = conv.dialogue || [];
+
+      // References for in-place progress updates
+      let progressTextEl = null;
+      let progressFillEl = null;
+
+      function updateProgress() {
+        const checkedCount = dialogue.filter((_, i) => soloChecked[i]).length;
+        if (progressTextEl) progressTextEl.textContent = `${checkedCount} / ${dialogue.length} lines practiced`;
+        if (progressFillEl) progressFillEl.style.width = `${dialogue.length ? (checkedCount / dialogue.length * 100) : 0}%`;
+      }
+
+      dialogue.forEach((line, idx) => {
         const whoName = line.who === "A" ? roles[0] : roles[1];
-        const lineEl = el("div", { class: `line ${line.who}` }, [
-          el("div", { class: "who" }, `${line.who}: ${whoName}`),
-          el("div", { class: "what" }, line.line),
+        const checked = !!soloChecked[idx];
+        const cbSpan = el("span", null, checked ? "✓" : "");
+        const cb = el("div", {
+          class: `solo-check${checked ? ' checked' : ''}`,
+          title: checked ? "Uncheck this line" : "Mark as practiced",
+          onclick: (e) => {
+            e.stopPropagation();
+            const nowChecked = !soloChecked[idx];
+            soloChecked[idx] = nowChecked;
+            Storage.set(soloKey, soloChecked);
+
+            // Toggle checkbox in-place
+            cb.classList.toggle("checked", nowChecked);
+            cb.title = nowChecked ? "Uncheck this line" : "Mark as practiced";
+            cbSpan.textContent = nowChecked ? "✓" : "";
+
+            // Toggle line styling in-place
+            bubble.classList.toggle("line-done", nowChecked);
+            lineWrap.classList.toggle("line-done", nowChecked);
+
+            // Update progress bar
+            updateProgress();
+
+            // Check if ALL lines are now checked
+            const allDone = dialogue.every((_, i) => soloChecked[i]);
+            if (allDone) {
+              State.incrementConvRepeats(w, d, conv.id);
+              State.addXP(3, "Solo conversation practice");
+              UI.toast("Round complete! ✓");
+              soloChecked = {};
+              Storage.set(soloKey, soloChecked);
+              // Full re-render only when a round completes (to update repeat indicators)
+              Views.speaking(mount, params);
+            }
+          }
+        }, [cbSpan]);
+
+        const bubble = el("div", { class: `line ${line.who}${checked ? ' line-done' : ''}` }, [
+          el("div", { class: "line-content" }, [
+            el("div", { class: "who" }, `${line.who}: ${whoName}`),
+            el("div", { class: "what" }, line.line),
+          ]),
         ]);
-        wrap.appendChild(lineEl);
+
+        const lineWrap = el("div", { class: `line-wrap ${line.who}${checked ? ' line-done' : ''}` }, [
+          cb,
+          bubble
+        ]);
+        wrap.appendChild(lineWrap);
       });
+
+      // Solo progress counter
+      const checkedCount = dialogue.filter((_, i) => soloChecked[i]).length;
+      progressTextEl = el("div", { class: "solo-progress-text" }, `${checkedCount} / ${dialogue.length} lines practiced`);
+      progressFillEl = el("div", { class: "solo-progress-fill", style: `width:${dialogue.length ? (checkedCount / dialogue.length * 100) : 0}%` });
+      const counter = el("div", { class: "solo-progress-bar" }, [
+        progressTextEl,
+        el("div", { class: "solo-progress-track" }, [progressFillEl])
+      ]);
+      wrap.insertBefore(counter, wrap.firstChild);
+
       return wrap;
     }
 
@@ -291,7 +362,8 @@ window.Views.speaking = function (mount, params) {
     // LEFT: dialogue
     const left = el("div", { class: "col" });
     left.appendChild(repeatsBlock());
-    left.appendChild(el("div", { class: "card" }, [dialogueBlock()]));
+    dialogueCard = el("div", { class: "card" }, [dialogueBlock()]);
+    left.appendChild(dialogueCard);
 
     // RIGHT: vocab, rating, notes
     const right = el("div", { class: "col" });

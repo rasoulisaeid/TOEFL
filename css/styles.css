@@ -3052,3 +3052,96 @@ main {
   .days-grid { grid-template-columns: repeat(2, 1fr); }
   .rec-timer { font-size: 24px; }
 }
+
+/* ============================================================
+   SOLO PRACTICE CHECKBOXES — Speaking Conversations
+   ============================================================ */
+
+/* Each dialogue line now uses a wrapper to keep checkbox outside the bubble box */
+.line-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+.line-wrap.A {
+  justify-content: flex-start;
+}
+.line-wrap.B {
+  justify-content: flex-end;
+}
+
+.dialogue .line {
+  line-height: 1.5;
+}
+.dialogue .line.line-done .line-content {
+  opacity: 0.45;
+}
+.dialogue .line.line-done .line-content .what {
+  text-decoration: line-through;
+  text-decoration-color: var(--border-2);
+}
+
+/* Solo checkbox circle */
+.solo-check {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border-2);
+  background: var(--card-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all .15s cubic-bezier(.4, 0, .2, 1);
+  user-select: none;
+}
+.solo-check:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: scale(1.12);
+}
+.solo-check:active {
+  transform: scale(0.92);
+}
+.solo-check.checked {
+  border-color: var(--green);
+  background: var(--green);
+  box-shadow: 0 2px 0 var(--green-dark), 0 0 0 3px var(--green-soft);
+}
+.solo-check.checked span {
+  color: white;
+  font-weight: 900;
+  font-size: 14px;
+}
+.solo-check span {
+  font-size: 0;
+  line-height: 1;
+}
+
+/* Solo progress bar at top of dialogue */
+.solo-progress-bar {
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background: var(--bg-2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+}
+.solo-progress-text {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.solo-progress-track {
+  height: 6px;
+  background: var(--card-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.solo-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--green));
+  border-radius: 999px;
+  transition: width .35s cubic-bezier(.4, 0, .2, 1);
+}

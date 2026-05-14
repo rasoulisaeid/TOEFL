@@ -251,8 +251,24 @@ window.Views.imageStory = function (mount, params) {
           session.described = session.described || {};
           session.described[idx] = !session.described[idx];
           State.setStorySession(w, d, slot, session);
-          close();
-          rerenderImageParts();
+
+          // Check if ALL 8 scenes are now described
+          const allDescribed = [0,1,2,3,4,5,6,7].every(i => session.described[i]);
+          if (allDescribed) {
+            // Increment one story repeat
+            State.incrementConvRepeats(w, d, story.id + ":story", 2);
+            State.addXP(5, "Solo story practice");
+            UI.toast("All scenes done — round complete! ✓");
+            // Reset described flags for next round
+            session.described = {};
+            State.setStorySession(w, d, slot, session);
+            close();
+            // Full re-render to update repeat indicators
+            Views.imageStory(mount, params);
+          } else {
+            close();
+            rerenderImageParts();
+          }
         }}),
       ]));
       m.appendChild(right);
@@ -461,7 +477,7 @@ window.Views.imageStory = function (mount, params) {
             style: "width:100%; margin-top:30px",
             onclick: async () => {
               session.finished = true;
-              State.incrementConvRepeats(w, d, story.id + ":story");
+              State.incrementConvRepeats(w, d, story.id + ":story", 2);
               State.addXP(5, "Story practice");
               if (!remoteTriggered) {
                 await window.PracticeSync.update({ finished: true });
